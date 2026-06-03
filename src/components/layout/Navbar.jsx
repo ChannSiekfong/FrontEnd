@@ -23,7 +23,8 @@ export default function Navbar({ showSidebar = false }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const activeTab = pathname.includes('memory') ? 'WORKSPACE'
+  const activeTab = pathname === '/profiles' ? null
+    : pathname.includes('memory') ? 'WORKSPACE'
     : pathname.includes('system') ? 'ENCRYPTED'
     : 'PERSONAL';
 

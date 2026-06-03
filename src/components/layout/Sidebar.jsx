@@ -50,9 +50,7 @@ export default function Sidebar() {
   return (
     <aside style={{
       width: 200,
-      height: '100vh',
-      position: 'sticky',
-      top: 0,
+      alignSelf: 'stretch', 
       background: 'var(--bg-sidebar)',
       borderRight: '1px solid var(--border-dim)',
       display: 'flex', flexDirection: 'column',
