@@ -1,6 +1,7 @@
 // src/pages/ProfileSelectionPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LogoutButton } from '../components/ui/Logout';
 import Navbar from '../components/layout/Navbar';
 import StatusBar from '../components/ui/StatusBar';
 import CornerBrackets from '../components/ui/CornerBrackets';
@@ -214,56 +215,67 @@ function CreateProfileCard({ onClick }) {
   );
 }
 
-const profiles = [
-  {
-    id: 1, name: 'Work', type: 'workspace',
-    lastSync: '14:32:01 UTC',
-    apps: [<MailIcon />, <CloudIcon />],
-    progress: 78,
-  },
-  {
-    id: 2, name: 'Personal', type: 'personal',
-    lastSync: '09:12:44 UTC',
-    apps: [<PlayIcon />, <MusicIcon />],
-    progress: 55,
-  },
-];
+const profiles = [];
 
 export default function ProfileSelectionPage() {
   const navigate = useNavigate();
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: "var(--bg-base)",
+      }}
+    >
       {/* Top mini bar */}
-      <div style={{
-        padding: '6px 20px',
-        background: 'rgba(10,11,16,0.95)',
-        borderBottom: '1px solid var(--border-dim)',
-        fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em',
-      }}>
-        Profile Selection
+      <div
+        style={{
+          padding: "6px 20px",
+          background: "rgba(10,11,16,0.95)",
+          borderBottom: "1px solid var(--border-dim)",
+          fontSize: 10,
+          color: "var(--text-muted)",
+          letterSpacing: "0.1em",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <span>Profile Selection</span>
+        <LogoutButton />
       </div>
 
-      <Navbar />
+      {/* <Navbar /> */}
 
       {/* Main */}
-      <div style={{ flex: 1, padding: '60px 48px 40px' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div style={{ borderTop: '1px solid var(--border-dim)', marginBottom: 48 }} />
+      <div style={{ flex: 1, padding: "60px 48px 40px" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <div
+            style={{
+              borderTop: "1px solid var(--border-dim)",
+              marginBottom: 48,
+            }}
+          />
 
-          <div className="animate-fade-up" style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 20,
-          }}>
+          <div
+            className="animate-fade-up"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 20,
+            }}
+          >
             {profiles.map((p, i) => (
               <div key={p.id} className={`animate-fade-up-delay-${i}`}>
                 <ProfileCard
                   profile={p}
-                  onSelect={() => navigate('/dashboard/omni-search')}
+                  onSelect={() => navigate("/dashboard/omni-search")}
                 />
               </div>
             ))}
-            <div className="animate-fade-up-delay-2">
+            {/* Create Profile Card should be center if there no profiles */}
+            <div className={`animate-fade-up-delay-2 `}>
               <CreateProfileCard onClick={() => {}} />
             </div>
           </div>
@@ -271,16 +283,18 @@ export default function ProfileSelectionPage() {
       </div>
 
       {/* Status footer */}
-      <div style={{
-        margin: '0 48px 40px',
-        maxWidth: 960,
-        marginLeft: 'auto',
-        marginRight: 'auto',
-      }}>
+      <div
+        style={{
+          margin: "0 48px 40px",
+          maxWidth: 960,
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+      >
         <StatusBar
           left={[
-            { dot: '#4af0c4', label: 'SYSTEM_LOAD: 12%' },
-            { icon: '▣', label: 'SERVER: EDGE_NODE_09' },
+            { dot: "#4af0c4", label: "SYSTEM_LOAD: 12%" },
+            { icon: "▣", label: "SERVER: EDGE_NODE_09" },
           ]}
           right="© 2024 NEURAL_SEARCH_PROTOCOL  ▪ ▪ ▪"
         />
