@@ -43,6 +43,19 @@ export const loginAPI = async (email, password) => {
   }
 }
 
+export const logoutAPI = async () => {
+  try {
+    const response = await api.post(`${API_BASE_URL}/logout`);
+    toast.success(response.data.message || "Logout successful!");
+    console.log("(API) Logout successful:", response.data);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Logout failed. Please try again.";
+    console.error("(API) Logout failed:", message);
+    return { status: "error", message };
+  }
+}
+
 export const checkAuthAPI = async () => {
   try {
     const response = await api.get(`${API_BASE_URL}/me`);

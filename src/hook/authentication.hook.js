@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { loginAPI, registerAPI } from '../api/authentication.api';
+import { loginAPI, registerAPI, logoutAPI } from '../api/authentication.api';
 
 
 export const useRegister = () => {
@@ -22,11 +22,20 @@ export const useLogin = () => {
   const navigate = useNavigate();
   const loginUser = async (email, hash_password) => {
     const data = await loginAPI(email, hash_password);
-
-    if(data.status === "success") {
-      navigate('/profiles');
-    }
+    navigate('/profiles');
+    return data;
   }
-
   return { loginUser };
+}
+
+export const useLogout = () => {
+  const navigate = useNavigate();
+  const logoutUser = async () => {
+    const data = await logoutAPI();
+    if (data.status === "success") {
+      navigate('/login');
+    }
+    return data;
+  }
+  return { logoutUser };
 }
