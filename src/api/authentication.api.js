@@ -1,10 +1,11 @@
-import axios from "axios";
+import { api } from "./global.api";
+import { toast } from "react-toastify";
 
-export const API_BASE_URL = "http://localhost:8000/api/authentication";
+export const API_BASE_URL = "/authentication";
 
 export const registerAPI = async (username, email, hash_password, confirm_password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/register`, {
+    const response = await api.post(`${API_BASE_URL}/register`, {
       username: username,
       email: email,
       hash_password: hash_password,
@@ -12,9 +13,32 @@ export const registerAPI = async (username, email, hash_password, confirm_passwo
     });
 
     console.log("(API) Registration successful:", response.data);
+    toast.success(response.data.message || "Registration successful!");
 
     return response.data;
   } catch (error) {
-    throw error;
+    const message = error.response?.data?.message || "Registration failed. Please try again.";
+    console.error("(API) Registration failed:", message);
+    toast.error(message);
+    return { status: "error", message };
+  }
+}
+
+export const loginAPI = async (email, password) => {
+  try {
+    const response = await api.post(`${API_BASE_URL}/login`, {
+      email: email,
+      password: password,
+    });
+
+    console.log("(API) Login successful:", response.data);
+    toast.success(response.data.message || "Login successful!");
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Login failed. Please try again.";
+    console.error("(API) Login failed:", message);
+    toast.error(message);
+    return { status: "error", message };
   }
 }

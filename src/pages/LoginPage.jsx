@@ -1,6 +1,7 @@
 // src/pages/LoginPage.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLogin } from '../hook/authentication.hook';
 import CornerBrackets from '../components/ui/CornerBrackets';
 
 const GoogleIcon = () => (
@@ -21,9 +22,15 @@ const ShieldIcon = () => (
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { loginUser } = useLogin();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [focusedField, setFocusedField] = useState(null);
+
+  const handleLogin = async () => {
+    await loginUser(email, password);
+  }
 
   const inputStyle = (field) => ({
     width: '100%',
@@ -133,7 +140,7 @@ export default function LoginPage() {
 
         {/* Submit */}
         <button
-          onClick={() => navigate('/profiles')}
+          onClick={handleLogin}
           style={{
             width: '100%', padding: '14px',
             background: 'var(--accent-blue)', border: 'none',

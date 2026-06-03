@@ -40,16 +40,7 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
-    try {
       const data = await registerUser(form.username, form.email, form.hash_password, form.confirm_password);
-
-      if(data.status !== "success") {
-        alert(data?.message || "Registration failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Registration failed:", error);
-      alert(error?.message || "An error occurred during registration.");
-    }
   }
 
   const inputStyle = (field) => ({
