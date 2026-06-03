@@ -46,19 +46,20 @@ const LockIcon = () => (
 
 export const CreateProfilePopup = ({
   onClose,
+  triggerRefresh
 }) => {
   const { createProfile } = useCreateProfile();
 
   const [name, setName] = useState("");
   const [selectedColor, setSelectedColor] = useState(PROFILE_COLORS[0]);
-  const [profileType, setProfileType] = useState("standard");
+  const [profileType, setProfileType] = useState("STANDARD");
   const [focused, setFocused] = useState(false);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim()) return;
 
     let setColor = "";
@@ -70,7 +71,7 @@ export const CreateProfilePopup = ({
     if(selectedColor === PROFILE_COLORS[4]) setColor = "RED";
     if(selectedColor === PROFILE_COLORS[5]) setColor = "PURPLE";
 
-    createProfile(
+    await createProfile(
       name,
       setColor,
       profileType,
@@ -78,9 +79,8 @@ export const CreateProfilePopup = ({
       profileType === "PRIVATE" ? confirmPassword : undefined,
     );
 
+    await triggerRefresh();
     onClose();
-    // refresh page to show new profile in list
-    window.location.reload();
   };
 
   return (

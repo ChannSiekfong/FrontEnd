@@ -21,3 +21,16 @@ export const createProfileAPI = async (name, color, type, password, confirm_pass
     return { status: "error", message };
   }
 }
+
+export const getProfilesAPI = async (id) => {
+  try {
+    const response = await api.get(`${API_BASE_URL}/`);
+    console.log("(API) Fetched profiles:", response.data);
+    return response;
+  } catch (error) {
+    console.error("(API) Error fetching profiles:", error);
+    const message = error.response?.data?.message || "Failed to fetch profiles. Please try again.";
+    toast.error(message);
+    return { status: "error", message };
+  }
+}

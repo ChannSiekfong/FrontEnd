@@ -1,8 +1,9 @@
 // src/pages/ProfileSelectionPage.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogoutButton } from "../components/ui/Logout";
 import { CreateProfilePopup } from "../components/ui/CreateProfile";
+import { useGetProfiles } from "../hook/profile.hook";
 import StatusBar from "../components/ui/StatusBar";
 import CornerBrackets from "../components/ui/CornerBrackets";
 
@@ -40,6 +41,18 @@ const CheckIcon = () => (
 function ProfileCard({ profile, onSelect }) {
   const [hovered, setHovered] = useState(false);
 
+  function getColor(color) {
+    if (color === "BLUE") return "#4a9eff";
+    if (color === "CYAN") return "#00d4ff";
+    if (color === "GREEN") return "#00ff9d";
+    if (color === "ORANGE") return "#e8a04a";
+    if (color === "RED") return "#ff5f7a";
+    if (color === "PURPLE") return "#b07cff";
+    return "#4a9eff";
+  }
+
+  const color = getColor(profile.color);
+
   return (
     <div
       onClick={onSelect}
@@ -48,15 +61,16 @@ function ProfileCard({ profile, onSelect }) {
       style={{
         position: "relative",
         background: hovered ? "var(--bg-card-hover)" : "var(--bg-card)",
-        border: `1px solid ${hovered ? "var(--border-bright)" : "var(--border-dim)"}`,
+        border: `1px solid var(--border-dim)`,
         padding: "24px",
         cursor: "pointer",
         transition: "all 0.2s",
       }}
     >
-      <CornerBrackets color={hovered ? "#4a9eff" : "#2e3a4f"} />
+      {/* ONLY corner accents become dynamic */}
+      <CornerBrackets color={hovered ? color : "#2e3a4f"} />
 
-      {/* type */}
+      {/* type badge (KEEP NEUTRAL) */}
       <div
         style={{
           position: "absolute",
@@ -70,49 +84,60 @@ function ProfileCard({ profile, onSelect }) {
           background: "var(--bg-base)",
         }}
       >
-        {profile.type.toUpperCase()}
+        {profile.type}
       </div>
 
-      {/* icon */}
+      {/* icon box (ONLY BORDER + ICON COLOR changes) */}
       <div
         style={{
           width: 52,
           height: 52,
-          border: "1px solid var(--border-bright)",
+          border: `1px solid ${color}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "var(--accent-blue)",
+          color: color,
           marginBottom: 16,
           background: "var(--bg-input)",
         }}
       >
-        {profile.type === "workspace" ? <BriefcaseIcon /> : <PersonIcon />}
+        {profile.type === "STANDARD" ? <BriefcaseIcon /> : <PersonIcon />}
       </div>
 
-      <h3 style={{ fontFamily: "var(--font-display)", fontSize: 22, marginBottom: 4 }}>
+      {/* name (ONLY optional accent, rest unchanged) */}
+      <h3
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: 22,
+          marginBottom: 4,
+          color: "var(--text-primary)",
+        }}
+      >
         {profile.name}
       </h3>
 
+      {/* sync text (unchanged) */}
       <p style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 16 }}>
         Last Sync: {profile.lastSync}
       </p>
 
-      {/* status */}
+      {/* status (ONLY label becomes dynamic accent if you want subtle UX) */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <span style={{ fontSize: 9, color: "var(--accent-green)" }}>SYNC_COMPLETE</span>
+        <span style={{ fontSize: 9, color: color }}>SYNC_COMPLETE</span> {/* optional accent */}
         <CheckIcon />
       </div>
 
+      {/* button (ONLY border accent changes, not background) */}
       <button
         style={{
           width: "100%",
           padding: "10px",
-          border: "1px solid var(--border-mid)",
+          border: `1px solid ${color}`,
           background: "var(--bg-input)",
           fontSize: 10,
           letterSpacing: "0.16em",
           cursor: "pointer",
+          color: "var(--text-primary)",
         }}
       >
         INITIALIZE_PROFILE
@@ -167,12 +192,25 @@ function CreateProfileCard({ onClick }) {
 
 /* ---------------- MAIN PAGE ---------------- */
 
-const profiles = [];
-
 export default function ProfileSelectionPage() {
   const navigate = useNavigate();
+  const [refreshFlag, setRefreshFlag] = useState(0);
+  const { getProfiles } = useGetProfiles();
+
+  const [profiles, setProfiles] = useState([]);
+
   const hasProfiles = profiles.length > 0;
   const [showCreatePopup, setShowCreatePopup] = useState(false);
+
+  const triggerRefresh = () => setRefreshFlag((prev) => prev + 1);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const data = await getProfiles();
+      setProfiles(data);
+    };
+    fetchProfiles();
+  }, [refreshFlag]);
 
   return (
     <div
@@ -288,7 +326,7 @@ export default function ProfileSelectionPage() {
             </div>
           )}
 
-          {showCreatePopup && <CreateProfilePopup onClose={() => setShowCreatePopup(false)} />}
+          {showCreatePopup && <CreateProfilePopup onClose={() => setShowCreatePopup(false)} triggerRefresh={triggerRefresh} />}
         </div>
       </div>
 
