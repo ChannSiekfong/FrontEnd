@@ -42,3 +42,14 @@ export const loginAPI = async (email, password) => {
     return { status: "error", message };
   }
 }
+
+export const checkAuthAPI = async () => {
+  try {
+    const response = await api.get(`${API_BASE_URL}/me`);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Authentication check failed.";
+    console.error("(API) Auth check failed:", error);
+    return { status: "error", message };
+  }
+}

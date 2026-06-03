@@ -1,6 +1,7 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import ProtectedRoute from './helper/protected';
 import './index.css';
 import ProfileSelectionPage from './pages/ProfileSelectionPage';
 import IntegrationsPage from './pages/IntegrationsPage';
@@ -26,17 +27,17 @@ export default function App() {
         theme="light"
       />
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/profiles" element={<ProfileSelectionPage />} />
-        {/* Dashboard routes — all share sidebar layout */}
-        <Route path="/dashboard/omni-search" element={<OmniSearchPage />} />
-        <Route path="/dashboard/memory-archives" element={<MemoryArchivesPage />} />
-        <Route path="/dashboard/neural-links" element={<IntegrationsPage />} />
-        <Route path="/dashboard/system-config" element={<SystemConfigPage />} />
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+
+        {/* protected routes */}
+          <Route path="/profiles" element={<ProtectedRoute><ProfileSelectionPage /></ProtectedRoute>} />
+          <Route path="/dashboard/omni-search" element={<ProtectedRoute><OmniSearchPage /></ProtectedRoute>} />
+          <Route path="/dashboard/memory-archives" element={<ProtectedRoute><MemoryArchivesPage /></ProtectedRoute>} />
+          <Route path="/dashboard/neural-links" element={<ProtectedRoute><IntegrationsPage /></ProtectedRoute>} />
+          <Route path="/dashboard/system-config" element={<ProtectedRoute><SystemConfigPage /></ProtectedRoute>} />
       </Routes>
     </>
   );
