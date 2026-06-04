@@ -22,7 +22,9 @@ export const useLogin = () => {
   const navigate = useNavigate();
   const loginUser = async (email, hash_password) => {
     const data = await loginAPI(email, hash_password);
-    navigate('/profiles');
+    if (data.status === "success") {
+      navigate('/profiles');
+    }
     return data;
   }
   return { loginUser };

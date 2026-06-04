@@ -16,6 +16,7 @@ export default function App() {
     <>
       <ToastContainer
         position="top-right"
+        z-index={9999}
         autoClose={1500}
         hideProgressBar={false}
         newestOnTop={false}
