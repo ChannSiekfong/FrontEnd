@@ -65,17 +65,12 @@ function IntegrationCard({
   onSync,
   onReconnect,
 }) {
-  // ─────────────────────────────────────
-  // FIXED STATE LOGIC (IMPORTANT)
-  // ─────────────────────────────────────
-
   const hasRefreshToken = !!integration?.refreshToken;
   const isActiveFlag = integration?.isActive === true;
   const isDisconnectedFlag = integration?.isActive === false;
 
   const isActive = hasRefreshToken && isActiveFlag;
   const isDisconnected = hasRefreshToken && isDisconnectedFlag;
-  const isNotIntegrated = !hasRefreshToken;
 
   const status = isActive
     ? "ACTIVE"
@@ -97,6 +92,23 @@ function IntegrationCard({
     integration?.type === "GMAIL"
       ? "SECURITY: OAUTH2 + AES-256"
       : "ENCRYPTION: PENDING";
+
+  // ─────────────────────────────────────
+  // BUTTON STYLES (SUBTLE INTERACTIONS)
+  // ─────────────────────────────────────
+  const baseBtn = {
+    transition: "all 0.18s ease",
+    cursor: "pointer",
+    transform: "translateY(0px)",
+  };
+
+  const hoverLift = {
+    transform: "translateY(-1px)",
+  };
+
+  const activePress = {
+    transform: "translateY(0px) scale(0.98)",
+  };
 
   return (
     <div
@@ -125,9 +137,7 @@ function IntegrationCard({
           </div>
 
           <div>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
-              {name}
-            </h3>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{name}</h3>
 
             <div style={{ fontSize: 9, letterSpacing: "0.12em" }}>
               <span
@@ -154,7 +164,14 @@ function IntegrationCard({
       {/* ACTIVE */}
       {status === "ACTIVE" && (
         <>
-          <div style={{ background: "var(--bg-input)", padding: 12, marginBottom: 14, fontSize: 9 }}>
+          <div
+            style={{
+              background: "var(--bg-input)",
+              padding: 12,
+              marginBottom: 14,
+              fontSize: 9,
+            }}
+          >
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "var(--text-dim)" }}>LAST SYNC</span>
               <span>{lastSync}</span>
@@ -167,6 +184,7 @@ function IntegrationCard({
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
+            {/* DISCONNECT */}
             <button
               onClick={onDisconnect}
               style={{
@@ -175,11 +193,23 @@ function IntegrationCard({
                 background: "var(--bg-input)",
                 border: "1px solid var(--border-mid)",
                 color: "var(--text-primary)",
+                ...baseBtn,
               }}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, hoverLift);
+                e.currentTarget.style.borderColor = "var(--border-bright)";
+              }}
+              onMouseLeave={(e) => {
+                Object.assign(e.currentTarget.style, baseBtn);
+                e.currentTarget.style.borderColor = "var(--border-mid)";
+              }}
+              onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
+              onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
             >
               DISCONNECT
             </button>
 
+            {/* SYNC */}
             <button
               onClick={() => onSync?.(integration)}
               style={{
@@ -188,7 +218,19 @@ function IntegrationCard({
                 background: "rgba(74,158,255,0.12)",
                 border: "1px solid rgba(74,158,255,0.35)",
                 color: "var(--accent-blue)",
+                ...baseBtn,
               }}
+              onMouseEnter={(e) => {
+                Object.assign(e.currentTarget.style, hoverLift);
+                e.currentTarget.style.boxShadow =
+                  "0 0 0 3px rgba(74,158,255,0.12)";
+              }}
+              onMouseLeave={(e) => {
+                Object.assign(e.currentTarget.style, baseBtn);
+                e.currentTarget.style.boxShadow = "none";
+              }}
+              onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
+              onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
             >
               SYNC
             </button>
@@ -196,7 +238,7 @@ function IntegrationCard({
         </>
       )}
 
-      {/* DISCONNECTED (RECONNECT STATE) */}
+      {/* DISCONNECTED */}
       {status === "DISCONNECTED" && (
         <>
           <div
@@ -224,7 +266,19 @@ function IntegrationCard({
               background: "rgba(245, 158, 11, 0.12)",
               border: "1px solid rgba(245, 158, 11, 0.35)",
               color: "#f59e0b",
+              ...baseBtn,
             }}
+            onMouseEnter={(e) => {
+              Object.assign(e.currentTarget.style, hoverLift);
+              e.currentTarget.style.boxShadow =
+                "0 0 0 3px rgba(245, 158, 11, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+              Object.assign(e.currentTarget.style, baseBtn);
+              e.currentTarget.style.boxShadow = "none";
+            }}
+            onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
+            onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
           >
             RECONNECT {name.toUpperCase()}
           </button>
@@ -259,7 +313,19 @@ function IntegrationCard({
               background: "rgba(168,85,247,0.12)",
               border: "1px solid rgba(168,85,247,0.35)",
               color: "#c084fc",
+              ...baseBtn,
             }}
+            onMouseEnter={(e) => {
+              Object.assign(e.currentTarget.style, hoverLift);
+              e.currentTarget.style.boxShadow =
+                "0 0 0 3px rgba(168,85,247,0.12)";
+            }}
+            onMouseLeave={(e) => {
+              Object.assign(e.currentTarget.style, baseBtn);
+              e.currentTarget.style.boxShadow = "none";
+            }}
+            onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
+            onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
           >
             INTEGRATE {name.toUpperCase()}
           </button>
@@ -335,7 +401,7 @@ export default function IntegrationsPage() {
   const [integrations, setIntegrations] = useState([]);
 
   // ─────────────────────────────────────
-  // SINGLE SOURCE OF TRUTH REFRESH
+  // SINGLE SOURCE OF TRUTH
   // ─────────────────────────────────────
   const refreshIntegrations = async () => {
     try {
@@ -347,66 +413,48 @@ export default function IntegrationsPage() {
   };
 
   // ─────────────────────────────────────
-  // DISCONNECT (FIXED)
+  // FIXED HANDLERS (MISSING BEFORE = CRASH)
   // ─────────────────────────────────────
+
   const handleDisconnect = async (integrationId) => {
-    if (!integrationId) {
-      console.error("Missing integrationId");
-      return;
-    }
-
     try {
-      await disconnectIntegration(integrationId);
+      if (!integrationId) return;
 
-      // IMPORTANT: always sync with backend (no local delete)
+      await disconnectIntegration(integrationId);
       await refreshIntegrations();
     } catch (err) {
-      console.error("Error disconnecting:", err);
+      console.error("Disconnect error:", err);
     }
   };
 
-  // ─────────────────────────────────────
-  // RECONNECT (FIXED)
-  // ─────────────────────────────────────
   const handleReconnect = async (type) => {
     try {
-      if (!type) {
-        console.error("Missing integration type");
-        return;
-      }
+      if (!type) return;
 
       await reconnectIntegration(profileId, type);
-
-      // sync state immediately
       await refreshIntegrations();
     } catch (err) {
-      console.error("Error reconnecting integration:", err);
+      console.error("Reconnect error:", err);
     }
   };
 
-  // ─────────────────────────────────────
-  // INTEGRATE (FIXED)
-  // ─────────────────────────────────────
   const handleIntegrate = async (type) => {
     try {
       await integrate(profileId, type);
       await refreshIntegrations();
     } catch (err) {
-      console.error("Error integrating:", err);
+      console.error("Integrate error:", err);
     }
   };
 
   // ─────────────────────────────────────
-  // INITIAL LOAD
+  // INIT LOAD
   // ─────────────────────────────────────
   useEffect(() => {
     if (!profileId) return;
     refreshIntegrations();
   }, [profileId]);
 
-  // ─────────────────────────────────────
-  // MAP (stable lookup)
-  // ─────────────────────────────────────
   const integrationMap = useMemo(() => {
     return new Map(integrations.map((i) => [i.type, i]));
   }, [integrations]);
@@ -414,8 +462,28 @@ export default function IntegrationsPage() {
   const getIntegration = (type) => integrationMap.get(type);
 
   const integrationList = [
-    { name: "Gmail", type: "GMAIL", icon: <MailIcon /> },
-    { name: "Telegram", type: "TELEGRAM", icon: <TelegramIcon /> },
+    {
+      name: "Gmail",
+      type: "GMAIL",
+      icon: (
+        <img
+          src="/asset/gmail.png"
+          alt="Gmail"
+          style={{ width: 22, height: 22, objectFit: "contain" }}
+        />
+      ),
+    },
+    {
+      name: "Telegram",
+      type: "TELEGRAM",
+      icon: (
+        <img
+          src="/asset/telegram.png"
+          alt="Telegram"
+          style={{ width: 22, height: 22, objectFit: "contain" }}
+        />
+      ),
+    },
   ];
 
   return (
@@ -449,7 +517,7 @@ export default function IntegrationsPage() {
                   onIntegrate={handleIntegrate}
                   onDisconnect={() => handleDisconnect(integration?.id)}
                   onSync={() => {}}
-                  onReconnect={() => handleReconnect(item.type)} // FIXED SAFETY
+                  onReconnect={() => handleReconnect(item.type)}
                 />
               );
             })}
