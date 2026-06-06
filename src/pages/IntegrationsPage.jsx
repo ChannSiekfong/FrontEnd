@@ -56,33 +56,32 @@ const DiamondIcon = () => (
 
 function IntegrationCard({
   type,
+  id,
   name,
   icon,
   integration,
   onIntegrate,
   onDisconnect,
   onSync,
-  onConnect,
+  onReconnect,
 }) {
   // ─────────────────────────────────────
-  // STATE LOGIC (FIXED + CONSISTENT)
+  // FIXED STATE LOGIC (IMPORTANT)
   // ─────────────────────────────────────
 
   const hasRefreshToken = !!integration?.refreshToken;
+  const isActiveFlag = integration?.isActive === true;
+  const isDisconnectedFlag = integration?.isActive === false;
 
-  const isConnected = hasRefreshToken;
+  const isActive = hasRefreshToken && isActiveFlag;
+  const isDisconnected = hasRefreshToken && isDisconnectedFlag;
+  const isNotIntegrated = !hasRefreshToken;
 
-  const isActive = isConnected && integration?.isActive === true;
-
-  const isDisconnected = isConnected && integration?.isActive === false;
-
-  const isNotIntegrated = !isConnected;
-
-  const status = isNotIntegrated
-    ? "NOT_INTEGRATED"
-    : isActive
+  const status = isActive
     ? "ACTIVE"
-    : "DISCONNECTED";
+    : isDisconnected
+    ? "DISCONNECTED"
+    : "NOT_INTEGRATED";
 
   const bridgeId = integration?.id || "—";
 
@@ -108,14 +107,8 @@ function IntegrationCard({
         color: "var(--text-primary)",
       }}
     >
-      {/* ───────────────────────── HEADER ───────────────────────── */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 16,
-        }}
-      >
+      {/* HEADER */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div
             style={{
@@ -158,49 +151,30 @@ function IntegrationCard({
         </div>
       </div>
 
-      {/* ───────────────────────── ACTIVE STATE ───────────────────────── */}
+      {/* ACTIVE */}
       {status === "ACTIVE" && (
         <>
-          <div
-            style={{
-              background: "var(--bg-input)",
-              border: "1px solid var(--border-dim)",
-              padding: 12,
-              marginBottom: 14,
-              fontSize: 9,
-            }}
-          >
+          <div style={{ background: "var(--bg-input)", padding: 12, marginBottom: 14, fontSize: 9 }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "var(--text-dim)" }}>LAST SYNC</span>
               <span>{lastSync}</span>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 6,
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
               <span style={{ color: "var(--text-dim)" }}>FILTERS</span>
-              <span style={{ color: "var(--accent-blue)" }}>
-                {activeFilters}
-              </span>
+              <span style={{ color: "var(--accent-blue)" }}>{activeFilters}</span>
             </div>
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
             <button
-              onClick={() => onDisconnect?.(integration)}
+              onClick={onDisconnect}
               style={{
                 flex: 1,
                 padding: 10,
                 background: "var(--bg-input)",
                 border: "1px solid var(--border-mid)",
                 color: "var(--text-primary)",
-                fontSize: 10,
-                letterSpacing: "0.12em",
-                cursor: "pointer",
               }}
             >
               DISCONNECT
@@ -214,9 +188,6 @@ function IntegrationCard({
                 background: "rgba(74,158,255,0.12)",
                 border: "1px solid rgba(74,158,255,0.35)",
                 color: "var(--accent-blue)",
-                fontSize: 10,
-                letterSpacing: "0.12em",
-                cursor: "pointer",
               }}
             >
               SYNC
@@ -225,7 +196,7 @@ function IntegrationCard({
         </>
       )}
 
-      {/* ───────────────────────── DISCONNECTED STATE ───────────────────────── */}
+      {/* DISCONNECTED (RECONNECT STATE) */}
       {status === "DISCONNECTED" && (
         <>
           <div
@@ -236,40 +207,23 @@ function IntegrationCard({
               marginBottom: 14,
             }}
           >
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.08em",
-                color: "#f59e0b",
-                marginBottom: 6,
-              }}
-            >
+            <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6 }}>
               Integration paused
             </div>
 
-            <div
-              style={{
-                fontSize: 9,
-                color: "var(--text-muted)",
-                lineHeight: 1.4,
-              }}
-            >
-              This {name} connection was previously active. Data remains stored
-              but synchronization is disabled.
+            <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
+              This {name} connection was previously active. You can reconnect anytime.
             </div>
           </div>
 
           <button
-            onClick={() => onConnect?.(integration)}
+            onClick={onReconnect}
             style={{
               width: "100%",
               padding: 12,
               background: "rgba(245, 158, 11, 0.12)",
               border: "1px solid rgba(245, 158, 11, 0.35)",
               color: "#f59e0b",
-              fontSize: 10,
-              letterSpacing: "0.12em",
-              cursor: "pointer",
             }}
           >
             RECONNECT {name.toUpperCase()}
@@ -277,7 +231,7 @@ function IntegrationCard({
         </>
       )}
 
-      {/* ───────────────────────── NOT CONNECTED STATE ───────────────────────── */}
+      {/* NOT INTEGRATED */}
       {status === "NOT_INTEGRATED" && (
         <>
           <div
@@ -288,25 +242,12 @@ function IntegrationCard({
               marginBottom: 14,
             }}
           >
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: "0.08em",
-                color: "var(--text-primary)",
-                marginBottom: 6,
-              }}
-            >
+            <div style={{ fontSize: 11, marginBottom: 6 }}>
               No integration configured
             </div>
 
-            <div
-              style={{
-                fontSize: 9,
-                color: "var(--text-muted)",
-                lineHeight: 1.4,
-              }}
-            >
-              Connect {name} to enable secure synchronization and data access.
+            <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
+              Connect {name} to enable synchronization.
             </div>
           </div>
 
@@ -318,9 +259,6 @@ function IntegrationCard({
               background: "rgba(168,85,247,0.12)",
               border: "1px solid rgba(168,85,247,0.35)",
               color: "#c084fc",
-              fontSize: 10,
-              letterSpacing: "0.12em",
-              cursor: "pointer",
             }}
           >
             INTEGRATE {name.toUpperCase()}
@@ -328,7 +266,7 @@ function IntegrationCard({
         </>
       )}
 
-      {/* ───────────────────────── FOOTER ───────────────────────── */}
+      {/* FOOTER */}
       <div
         style={{
           marginTop: 10,
@@ -387,10 +325,30 @@ export default function IntegrationsPage() {
   const location = useLocation();
   const profileId = new URLSearchParams(location.search).get("profileId");
 
-  const { getIntegrationStatus, disconnectIntegration, connectIntegration, integrate } = useIntegration();
+  const {
+    getIntegrationStatus,
+    disconnectIntegration,
+    reconnectIntegration,
+    integrate,
+  } = useIntegration();
 
   const [integrations, setIntegrations] = useState([]);
 
+  // ─────────────────────────────────────
+  // SINGLE SOURCE OF TRUTH REFRESH
+  // ─────────────────────────────────────
+  const refreshIntegrations = async () => {
+    try {
+      const res = await getIntegrationStatus(profileId);
+      setIntegrations(res?.data || []);
+    } catch (err) {
+      console.error("Failed to fetch integrations:", err);
+    }
+  };
+
+  // ─────────────────────────────────────
+  // DISCONNECT (FIXED)
+  // ─────────────────────────────────────
   const handleDisconnect = async (integrationId) => {
     if (!integrationId) {
       console.error("Missing integrationId");
@@ -400,49 +358,55 @@ export default function IntegrationsPage() {
     try {
       await disconnectIntegration(integrationId);
 
-      setIntegrations((prev) =>
-        prev.filter((i) => i.id !== integrationId)
-      );
+      // IMPORTANT: always sync with backend (no local delete)
+      await refreshIntegrations();
     } catch (err) {
-      console.error("Error disconnecting integration:", err);
+      console.error("Error disconnecting:", err);
     }
   };
 
-  const handleConnect = async (type) => {
+  // ─────────────────────────────────────
+  // RECONNECT (FIXED)
+  // ─────────────────────────────────────
+  const handleReconnect = async (type) => {
     try {
-      await connectIntegration(profileId, type);
-      const res = await getIntegrationStatus(profileId);
-      setIntegrations(res?.data || []);
+      if (!type) {
+        console.error("Missing integration type");
+        return;
+      }
+
+      await reconnectIntegration(profileId, type);
+
+      // sync state immediately
+      await refreshIntegrations();
     } catch (err) {
-      console.error("Error connecting integration:", err);
+      console.error("Error reconnecting integration:", err);
     }
   };
 
+  // ─────────────────────────────────────
+  // INTEGRATE (FIXED)
+  // ─────────────────────────────────────
   const handleIntegrate = async (type) => {
     try {
       await integrate(profileId, type);
-      const res = await getIntegrationStatus(profileId);
-      setIntegrations(res?.data || []);
+      await refreshIntegrations();
     } catch (err) {
       console.error("Error integrating:", err);
     }
   };
 
+  // ─────────────────────────────────────
+  // INITIAL LOAD
+  // ─────────────────────────────────────
   useEffect(() => {
     if (!profileId) return;
-
-    const fetch = async () => {
-      try {
-        const res = await getIntegrationStatus(profileId);
-        setIntegrations(res?.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetch();
+    refreshIntegrations();
   }, [profileId]);
 
+  // ─────────────────────────────────────
+  // MAP (stable lookup)
+  // ─────────────────────────────────────
   const integrationMap = useMemo(() => {
     return new Map(integrations.map((i) => [i.type, i]));
   }, [integrations]);
@@ -462,10 +426,8 @@ export default function IntegrationsPage() {
         <Sidebar />
 
         <main style={{ flex: 1, padding: 32 }}>
-          {/* HEADER */}
           <h1>NEURAL INTEGRATIONS</h1>
 
-          {/* GRID */}
           <div
             style={{
               display: "grid",
@@ -485,14 +447,9 @@ export default function IntegrationsPage() {
                   icon={item.icon}
                   integration={integration}
                   onIntegrate={handleIntegrate}
-                  onDisconnect={(integration) =>
-                    handleDisconnect(integration?.id)
-                  }
-                  onSync={(data) => {
-                  }}
-                  onConnect={() => {
-                    handleConnect(item.type);
-                  }}
+                  onDisconnect={() => handleDisconnect(integration?.id)}
+                  onSync={() => {}}
+                  onReconnect={() => handleReconnect(item.type)} // FIXED SAFETY
                 />
               );
             })}

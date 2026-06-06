@@ -49,7 +49,6 @@ export const integrateAPI = async (profileID, type) => {
 
 export const disconnectIntegrationAPI = async (integrationId) => {
   try {
-
     const response = await api.patch(`${API_BASE_URL}/disconnect?integrationId=${integrationId}`);
     toast.success(response.data.message || "Integration disconnected successfully!");
     return response.data;
@@ -61,23 +60,22 @@ export const disconnectIntegrationAPI = async (integrationId) => {
   }
 }
 
-export const connectIntegrationAPI = async (profileId, type) => {
+export const reconnectIntegrationAPI = async (profileId, type) => {
   try {
-    switch (type) {
-      case "GMAIL":
-        const response = await api.patch(`/profile/${profileId}/integration/google/refresh_token`);
-        break;
-      default:
-        break;
+    if(type.toUpperCase() === "GMAIL") {
+      const response = await api.patch(`/profile/${profileId}/integration/google/refresh_token`);
       toast.success(response.data.message || "Integration connected successfully!");
       return response.data;
+    } else {
+      throw new Error("Unsupported integration type");
     }
+
   } catch (error) {
 
-    if(error.response?.data?.message === "invalid_grant") {
-      deleteIntegrationAPI(profileId);
-      return { status: "error", message: "Integration expired" };
-    }
+    // if(error.response?.data?.message === "invalid_grant") {
+    //   deleteIntegrationAPI(profileId);
+    //   return { status: "error", message: "Integration expired" };
+    // }
 
     console.error("Error connecting integration:", error);
     const message = error.response?.data?.message || "Failed to connect integration. Please try again.";
