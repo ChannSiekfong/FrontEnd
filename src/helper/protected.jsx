@@ -5,6 +5,7 @@ import LoadingScreen from "../components/ui/LoadingScreen";
 export default function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
 
+
   if (loading) {
     return <LoadingScreen />;
   }

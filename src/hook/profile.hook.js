@@ -16,3 +16,9 @@ export const useGetProfiles = () => {
   }
   return { getProfiles };
 }
+
+export const useGetProfileParam = () => {
+  const location = useLocation();
+  const profileId = new URLSearchParams(location.search).get('profileId');
+  return { profileId };
+}

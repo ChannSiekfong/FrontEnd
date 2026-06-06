@@ -1,6 +1,8 @@
 // src/pages/IntegrationsPage.jsx
-import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useIntegration } from '../hook/integration.hook';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
 import StatusBar from '../components/ui/StatusBar';
@@ -52,158 +54,301 @@ const DiamondIcon = () => (
   </svg>
 );
 
-function IntegrationCard({ name, icon, connected, lastSync, activeFilters, bridgeId, securityNote, onDisconnect, onSync, onConnect }) {
+function IntegrationCard({
+  type,
+  name,
+  icon,
+  integration,
+  onIntegrate,
+  onDisconnect,
+  onSync,
+  onConnect,
+}) {
+  // ─────────────────────────────────────
+  // STATE LOGIC (FIXED + CONSISTENT)
+  // ─────────────────────────────────────
+
+  const hasRefreshToken = !!integration?.refreshToken;
+
+  const isConnected = hasRefreshToken;
+
+  const isActive = isConnected && integration?.isActive === true;
+
+  const isDisconnected = isConnected && integration?.isActive === false;
+
+  const isNotIntegrated = !isConnected;
+
+  const status = isNotIntegrated
+    ? "NOT_INTEGRATED"
+    : isActive
+    ? "ACTIVE"
+    : "DISCONNECTED";
+
+  const bridgeId = integration?.id || "—";
+
+  const lastSync = integration?.created_at
+    ? new Date(integration.created_at).toLocaleString()
+    : "NEVER";
+
+  const activeFilters = Array.isArray(integration?.metadata?.filters)
+    ? integration.metadata.filters.join(", ")
+    : "NONE";
+
+  const securityNote =
+    integration?.type === "GMAIL"
+      ? "SECURITY: OAUTH2 + AES-256"
+      : "ENCRYPTION: PENDING";
+
   return (
-    <div style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-dim)',
-      padding: 20,
-    }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{
-            width: 36, height: 36,
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-mid)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
+    <div
+      style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-dim)",
+        padding: 20,
+        color: "var(--text-primary)",
+      }}
+    >
+      {/* ───────────────────────── HEADER ───────────────────────── */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-mid)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             {icon}
           </div>
+
           <div>
-            <h3 style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 20, fontWeight: 700,
-              color: 'var(--text-primary)', marginBottom: 2,
-            }}>{name}</h3>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 9, letterSpacing: '0.12em' }}>
-              <span style={{
-                width: 6, height: 6, borderRadius: '50%',
-                background: connected ? 'var(--accent-green)' : 'var(--text-muted)',
-                display: 'inline-block',
-              }} />
-              <span style={{ color: connected ? 'var(--accent-green)' : 'var(--text-dim)' }}>
-                {connected ? 'CONNECTED' : 'DISCONNECTED'}
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>
+              {name}
+            </h3>
+
+            <div style={{ fontSize: 9, letterSpacing: "0.12em" }}>
+              <span
+                style={{
+                  color:
+                    status === "ACTIVE"
+                      ? "var(--accent-green)"
+                      : status === "DISCONNECTED"
+                      ? "#f59e0b"
+                      : "var(--text-dim)",
+                }}
+              >
+                {status}
               </span>
             </div>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{
-            fontSize: 8, letterSpacing: '0.14em',
-            border: '1px solid var(--border-mid)',
-            padding: '2px 8px',
-            color: 'var(--text-dim)',
-            marginBottom: 4,
-          }}>
-            STRICTLY ISOLATED
-          </div>
-          <div style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.08em' }}>
-            BRIDGE_ID: {bridgeId}
-          </div>
+
+        <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
+          ID: {bridgeId}
         </div>
       </div>
 
-      {/* Body */}
-      {connected ? (
+      {/* ───────────────────────── ACTIVE STATE ───────────────────────── */}
+      {status === "ACTIVE" && (
         <>
-          <div style={{
-            background: 'var(--bg-input)',
-            border: '1px solid var(--border-dim)',
-            padding: '12px 16px',
-            marginBottom: 14,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 9, letterSpacing: '0.14em', color: 'var(--text-dim)' }}>LAST SYNC EVENT</span>
-              <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-secondary)' }}>{lastSync}</span>
+          <div
+            style={{
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-dim)",
+              padding: 12,
+              marginBottom: 14,
+              fontSize: 9,
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--text-dim)" }}>LAST SYNC</span>
+              <span>{lastSync}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 9, letterSpacing: '0.14em', color: 'var(--text-dim)' }}>ACTIVE FILTERS</span>
-              <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'var(--accent-blue)' }}>{activeFilters}</span>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: 6,
+              }}
+            >
+              <span style={{ color: "var(--text-dim)" }}>FILTERS</span>
+              <span style={{ color: "var(--accent-blue)" }}>
+                {activeFilters}
+              </span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-            <button onClick={onDisconnect} style={{
-              flex: 1, padding: '10px',
-              background: 'var(--bg-input)', border: '1px solid var(--border-mid)',
-              color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)',
-              fontSize: 10, letterSpacing: '0.14em', cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#ef4444'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-mid)'}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              onClick={() => onDisconnect?.(integration)}
+              style={{
+                flex: 1,
+                padding: 10,
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-mid)",
+                color: "var(--text-primary)",
+                fontSize: 10,
+                letterSpacing: "0.12em",
+                cursor: "pointer",
+              }}
             >
               DISCONNECT
             </button>
-            <button onClick={onSync} style={{
-              flex: 1, padding: '10px',
-              background: 'rgba(74,158,255,0.15)',
-              border: '1px solid rgba(74,158,255,0.4)',
-              color: 'var(--accent-blue)', fontFamily: 'var(--font-mono)',
-              fontSize: 10, letterSpacing: '0.14em', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(74,158,255,0.25)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(74,158,255,0.15)'; }}
+
+            <button
+              onClick={() => onSync?.(integration)}
+              style={{
+                flex: 1,
+                padding: 10,
+                background: "rgba(74,158,255,0.12)",
+                border: "1px solid rgba(74,158,255,0.35)",
+                color: "var(--accent-blue)",
+                fontSize: 10,
+                letterSpacing: "0.12em",
+                cursor: "pointer",
+              }}
             >
-              <SyncIcon /> SYNC NOW
+              SYNC
             </button>
           </div>
         </>
-      ) : (
+      )}
+
+      {/* ───────────────────────── DISCONNECTED STATE ───────────────────────── */}
+      {status === "DISCONNECTED" && (
         <>
-          <div style={{
-            background: 'var(--bg-input)',
-            border: '1px dashed var(--border-mid)',
-            padding: '28px 16px',
-            marginBottom: 14,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: 8,
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--border-mid)" strokeWidth="1.5">
-              <path d="M3 15a4 4 0 0 0 4 4h9a5 5 0 0 0 1.8-9.7 7 7 0 0 0-13.3-2.4A4 4 0 0 0 3 15z"/>
-            </svg>
-            <p style={{ fontSize: 9, letterSpacing: '0.14em', color: 'var(--text-muted)' }}>
-              NO ACTIVE BRIDGE ESTABLISHED
-            </p>
+          <div
+            style={{
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              background: "rgba(245, 158, 11, 0.08)",
+              padding: 18,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                color: "#f59e0b",
+                marginBottom: 6,
+              }}
+            >
+              Integration paused
+            </div>
+
+            <div
+              style={{
+                fontSize: 9,
+                color: "var(--text-muted)",
+                lineHeight: 1.4,
+              }}
+            >
+              This {name} connection was previously active. Data remains stored
+              but synchronization is disabled.
+            </div>
           </div>
 
-          <button onClick={onConnect} style={{
-            width: '100%', padding: '12px',
-            background: 'rgba(168,85,247,0.15)',
-            border: '1px solid rgba(168,85,247,0.4)',
-            color: '#c084fc', fontFamily: 'var(--font-mono)',
-            fontSize: 10, letterSpacing: '0.14em', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            marginBottom: 14, transition: 'all 0.2s',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(168,85,247,0.25)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(168,85,247,0.15)'; }}
+          <button
+            onClick={() => onConnect?.(integration)}
+            style={{
+              width: "100%",
+              padding: 12,
+              background: "rgba(245, 158, 11, 0.12)",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              color: "#f59e0b",
+              fontSize: 10,
+              letterSpacing: "0.12em",
+              cursor: "pointer",
+            }}
           >
-            <LinkIcon /> CONNECT ACCOUNT
+            RECONNECT {name.toUpperCase()}
           </button>
         </>
       )}
 
-      {/* Footer */}
-      <div style={{
-        borderTop: '1px solid var(--border-dim)',
-        paddingTop: 10,
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        fontSize: 9, letterSpacing: '0.1em', color: 'var(--text-muted)',
-      }}>
+      {/* ───────────────────────── NOT CONNECTED STATE ───────────────────────── */}
+      {status === "NOT_INTEGRATED" && (
+        <>
+          <div
+            style={{
+              border: "1px solid var(--border-dim)",
+              background: "rgba(255,255,255,0.02)",
+              padding: 18,
+              marginBottom: 14,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                color: "var(--text-primary)",
+                marginBottom: 6,
+              }}
+            >
+              No integration configured
+            </div>
+
+            <div
+              style={{
+                fontSize: 9,
+                color: "var(--text-muted)",
+                lineHeight: 1.4,
+              }}
+            >
+              Connect {name} to enable secure synchronization and data access.
+            </div>
+          </div>
+
+          <button
+            onClick={() => onIntegrate?.(type)}
+            style={{
+              width: "100%",
+              padding: 12,
+              background: "rgba(168,85,247,0.12)",
+              border: "1px solid rgba(168,85,247,0.35)",
+              color: "#c084fc",
+              fontSize: 10,
+              letterSpacing: "0.12em",
+              cursor: "pointer",
+            }}
+          >
+            INTEGRATE {name.toUpperCase()}
+          </button>
+        </>
+      )}
+
+      {/* ───────────────────────── FOOTER ───────────────────────── */}
+      <div
+        style={{
+          marginTop: 10,
+          borderTop: "1px solid var(--border-dim)",
+          paddingTop: 10,
+          fontSize: 9,
+          color: "var(--text-muted)",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
         <span>{securityNote}</span>
-        {connected ? (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z"/>
-          </svg>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-        )}
+
+        <span>
+          {status === "ACTIVE"
+            ? "LIVE"
+            : status === "DISCONNECTED"
+            ? "PAUSED"
+            : "EMPTY"}
+        </span>
       </div>
     </div>
   );
@@ -239,109 +384,121 @@ function FeatureCard({ icon, title, desc, gradient }) {
 }
 
 export default function IntegrationsPage() {
-  const [gmailConnected, setGmailConnected] = useState(true);
-  const [telegramConnected, setTelegramConnected] = useState(false);
+  const location = useLocation();
+  const profileId = new URLSearchParams(location.search).get("profileId");
+
+  const { getIntegrationStatus, disconnectIntegration, connectIntegration, integrate } = useIntegration();
+
+  const [integrations, setIntegrations] = useState([]);
+
+  const handleDisconnect = async (integrationId) => {
+    if (!integrationId) {
+      console.error("Missing integrationId");
+      return;
+    }
+
+    try {
+      await disconnectIntegration(integrationId);
+
+      setIntegrations((prev) =>
+        prev.filter((i) => i.id !== integrationId)
+      );
+    } catch (err) {
+      console.error("Error disconnecting integration:", err);
+    }
+  };
+
+  const handleConnect = async (type) => {
+    try {
+      await connectIntegration(profileId, type);
+      const res = await getIntegrationStatus(profileId);
+      setIntegrations(res?.data || []);
+    } catch (err) {
+      console.error("Error connecting integration:", err);
+    }
+  };
+
+  const handleIntegrate = async (type) => {
+    try {
+      await integrate(profileId, type);
+      const res = await getIntegrationStatus(profileId);
+      setIntegrations(res?.data || []);
+    } catch (err) {
+      console.error("Error integrating:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!profileId) return;
+
+    const fetch = async () => {
+      try {
+        const res = await getIntegrationStatus(profileId);
+        setIntegrations(res?.data || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetch();
+  }, [profileId]);
+
+  const integrationMap = useMemo(() => {
+    return new Map(integrations.map((i) => [i.type, i]));
+  }, [integrations]);
+
+  const getIntegration = (type) => integrationMap.get(type);
+
+  const integrationList = [
+    { name: "Gmail", type: "GMAIL", icon: <MailIcon /> },
+    { name: "Telegram", type: "TELEGRAM", icon: <TelegramIcon /> },
+  ];
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <Navbar showSidebar />
 
-      <div style={{ display: 'flex', flex: 1, alignItems: 'flex-start' }}>
+      <div style={{ display: "flex", flex: 1 }}>
         <Sidebar />
 
-        {/* Main content */}
-        <main style={{ flex: 1, padding: '32px 36px', overflowY: 'auto' }}>
-          {/* Page header */}
-          <div className="animate-fade-up" style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 10 }}>
-              <h1 style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 32, fontWeight: 700,
-                color: 'var(--text-primary)',
-                letterSpacing: '0.04em',
-              }}>
-                NEURAL_INTEGRATIONS
-              </h1>
-              <div style={{
-                background: 'rgba(168,85,247,0.15)',
-                border: '1px solid rgba(168,85,247,0.3)',
-                padding: '3px 10px',
-                fontSize: 9, letterSpacing: '0.14em',
-                color: '#c084fc',
-              }}>
-                ACTIVE_PROFILE: ADMIN_NODE_01
-              </div>
-            </div>
-            <p style={{ fontSize: 13, color: 'var(--text-dim)', lineHeight: 1.6, maxWidth: 580 }}>
-              Manage data bridges for the current neural container. All integrated streams are{' '}
-              <span style={{ color: 'var(--accent-blue)' }}>strictly isolated</span>{' '}
-              to this profile's memory archives.
-            </p>
-          </div>
+        <main style={{ flex: 1, padding: 32 }}>
+          {/* HEADER */}
+          <h1>NEURAL INTEGRATIONS</h1>
 
-          {/* Integration cards */}
-          <div className="animate-fade-up-delay-1" style={{
-            display: 'grid', gridTemplateColumns: '1fr 1fr',
-            gap: 20, marginBottom: 28,
-          }}>
-            <IntegrationCard
-              name="Gmail"
-              icon={<MailIcon />}
-              connected={gmailConnected}
-              lastSync="2 MIN AGO"
-              activeFilters="Primary, Updates"
-              bridgeId="GM-0021"
-              securityNote="SECURITY PROTOCOL: AES-256-GCM"
-              onDisconnect={() => setGmailConnected(false)}
-              onSync={() => {}}
-            />
-            <IntegrationCard
-              name="Telegram"
-              icon={<TelegramIcon />}
-              connected={telegramConnected}
-              bridgeId="TG-0000"
-              securityNote="ENCRYPTION LEVEL: PENDING"
-              onConnect={() => setTelegramConnected(true)}
-            />
-          </div>
+          {/* GRID */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 20,
+              marginTop: 20,
+            }}
+          >
+            {integrationList.map((item) => {
+              const integration = getIntegration(item.type);
 
-          {/* Feature cards */}
-          <div className="animate-fade-up-delay-2" style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 20,
-          }}>
-            <FeatureCard
-              icon={<DBIcon />}
-              title="LOCAL STORAGE"
-              desc="All sync data is encrypted with local keys."
-              gradient="linear-gradient(135deg, #0d1a2e, #152035)"
-            />
-            <FeatureCard
-              icon={<ShieldIcon2 />}
-              title="PERMISSION GUARD"
-              desc="Granular control over specific folder syncs."
-              gradient="linear-gradient(135deg, #1a0d2e, #251535)"
-            />
-            <FeatureCard
-              icon={<DiamondIcon />}
-              title="API INTEGRITY"
-              desc="Direct bridge connection, no middleware."
-              gradient="linear-gradient(135deg, #2a1a08, #1e1408)"
-            />
+              return (
+                <IntegrationCard
+                  key={item.type}
+                  name={item.name}
+                  type={item.type}
+                  icon={item.icon}
+                  integration={integration}
+                  onIntegrate={handleIntegrate}
+                  onDisconnect={(integration) =>
+                    handleDisconnect(integration?.id)
+                  }
+                  onSync={(data) => {
+                  }}
+                  onConnect={() => {
+                    handleConnect(item.type);
+                  }}
+                />
+              );
+            })}
           </div>
         </main>
       </div>
-
-      {/* Status bar */}
-      <StatusBar
-        left={[
-          { label: 'NODE_HASH' },
-          { label: '0xAF82...9931' },
-          { label: 'SYSTEM_LOAD' },
-          { label: '0.04 MS / 0PS' },
-        ]}
-        right="PROTOCOL_STABLE // NO_LEAKS_DETECTED"
-      />
     </div>
   );
 }

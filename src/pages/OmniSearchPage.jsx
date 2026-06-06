@@ -1,6 +1,6 @@
 // src/pages/OmniSearchPage.jsx
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
 import StatusBar from '../components/ui/StatusBar';
@@ -132,7 +132,9 @@ function AiMessage({ msg }) {
   );
 }
 
+
 export default function OmniSearchPage() {
+
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);

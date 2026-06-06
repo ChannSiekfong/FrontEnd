@@ -71,7 +71,10 @@ export default function Navbar({ showSidebar = false }) {
           <SyncIcon />
         </button>
         {showSidebar ? (
-          <button onClick={() => navigate('/profiles')} style={{
+          <button onClick={() => {
+            navigate('/profiles')
+            localStorage.removeItem("currentProfileId");
+          }} style={{
             display: 'flex', alignItems: 'center', gap: 8,
             background: 'var(--bg-card)', border: '1px solid var(--border-mid)',
             color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)',

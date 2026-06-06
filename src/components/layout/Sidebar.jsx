@@ -36,21 +36,25 @@ const LogoutIcon = () => (
   </svg>
 );
 
-const NAV_ITEMS = [
-  { path: '/dashboard/omni-search',     icon: <SearchIcon />,  label: 'Omni-Search' },
-  { path: '/dashboard/memory-archives', icon: <ArchiveIcon />, label: 'Memory Archives' },
-  { path: '/dashboard/neural-links',    icon: <LinkIcon2 />,   label: 'Neural Links' },
-  { path: '/dashboard/system-config',   icon: <ConfigIcon />,  label: 'System Config' },
-];
+
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  const current_profile_id = localStorage.getItem("currentProfileId");
+  
+  const NAV_ITEMS = [
+    { path: `/dashboard/omni-search?profileId=${current_profile_id}`, icon: <SearchIcon />, label: 'Omni-Search' },
+    { path: `/dashboard/memory-archives?profileId=${current_profile_id}`, icon: <ArchiveIcon />, label: 'Memory Archives' },
+    { path: `/dashboard/neural-links?profileId=${current_profile_id}`, icon: <LinkIcon2 />, label: 'Neural Integration' },
+    { path: `/dashboard/system-config?profileId=${current_profile_id}`, icon: <ConfigIcon />, label: 'System Config' },
+  ];
+
   return (
     <aside style={{
       width: 200,
-      alignSelf: 'stretch', 
+      alignSelf: 'stretch',
       background: 'var(--bg-sidebar)',
       borderRight: '1px solid var(--border-dim)',
       display: 'flex', flexDirection: 'column',
