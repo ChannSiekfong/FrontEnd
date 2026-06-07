@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
 import StatusBar from '../components/ui/StatusBar';
+import { useSearch } from '../hook/search.hook';
 
 const SendIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -18,30 +19,7 @@ const ExtLinkIcon = () => (
 );
 
 const INITIAL_MESSAGES = [
-  {
-    id: 1, type: 'user',
-    text: 'Did someone mention plans for Saturday?',
-    time: '10:42:01',
-  },
-  {
-    id: 2, type: 'ai',
-    text: 'Yes, I found two references to Saturday plans in your work communications:',
-    sources: [
-      {
-        service: 'GMAIL', dot: '#4a9eff',
-        title: 'Subject: Project Phoenix Sync',
-        excerpt: '"Let\'s move the final sprint review to Saturday morning at 10 AM if the server migration..."',
-      },
-      {
-        service: 'TELEGRAM', dot: '#a855f7',
-        title: 'From: Sarah (Lead Engineer)',
-        excerpt: '"Saturday hiking after the deployment? Thinking Mount Diablo at 1 PM."',
-      },
-    ],
-    note: 'Note: There is a potential schedule conflict between the 10 AM review and the 1 PM hike due to commute time.',
-    time: '10:42:03',
-    analysisTime: '0.842s',
-  },
+
 ];
 
 function UserMessage({ msg }) {
@@ -50,6 +28,7 @@ function UserMessage({ msg }) {
       <div style={{
         background: '#1a2235',
         border: '1px solid var(--border-mid)',
+        borderRadius: '8px 8px 0 8px',
         padding: '10px 16px',
         maxWidth: '65%',
         fontSize: 13,
@@ -73,6 +52,7 @@ function AiMessage({ msg }) {
         borderTop: '1px solid var(--border-mid)',
         borderLeft: '1px solid var(--border-mid)',
         borderRight: '1px solid var(--border-mid)',
+        borderRadius: '6px',
         fontSize: 9, letterSpacing: '0.14em',
       }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -88,8 +68,20 @@ function AiMessage({ msg }) {
         background: 'var(--bg-card)',
         padding: '16px',
       }}>
-        <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.6 }}>
-          {msg.text}
+        <p style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 14, lineHeight: 1.6 }}>
+          {msg.statusText && msg.text === "" && (
+            <span style={{ opacity: 0.6 }}>
+              {msg.statusText}
+            </span>
+          )}
+          {msg.text && (
+            <span style={{ opacity: 0.9 }}>
+              {msg.text}
+            </span>
+          )}
+          {msg.status === "streaming" && (
+            <span style={{ opacity: 0.7 }}>▍</span>
+          )}
         </p>
 
         {msg.sources && (
@@ -134,6 +126,7 @@ function AiMessage({ msg }) {
 
 
 export default function OmniSearchPage() {
+  const { search } = useSearch();
 
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
@@ -144,23 +137,96 @@ export default function OmniSearchPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const text = input.trim();
     if (!text) return;
-    const now = new Date();
-    const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-    setMessages(m => [...m, { id: Date.now(), type: 'user', text, time }]);
-    setInput('');
-    setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages(m => [...m, {
-        id: Date.now() + 1, type: 'ai',
-        text: `Processing query: "${text}" — Scanning integrated modules across all connected sources...`,
-        analysisTime: (Math.random() * 0.8 + 0.2).toFixed(3) + 's',
-        time,
-      }]);
-    }, 1400);
+
+    const aiId = Date.now() + 1;
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        type: "user",
+        text,
+        time: new Date().toLocaleTimeString(),
+      },
+      {
+        id: aiId,
+        type: "ai",
+        text: "",
+        sources: [],
+        status: "searching",
+        statusText: "Building answer with AI..."
+      }
+    ]);
+
+    setInput("");
+
+    await search(text, aiId, (event) => {
+      handleStreamEvent(event, aiId);
+    });
+  };
+
+  const updateAIMessage = (aiId, updater) => {
+    setMessages(prev =>
+      prev.map(msg => {
+        if(msg.id !== aiId) return msg;
+        return updater(msg);
+      })
+    )
+  }
+
+  const handleStreamEvent = (event, aiId) => {
+    switch (event.type) {
+      case "token":
+        updateAIMessage(aiId, msg => ({
+          ...msg,
+          text: (msg.text || '') + event.content,
+          status: "streaming",
+          statusText: "", // 👈 THIS removes "Building answer..."
+        }));
+        break;
+      case "status":
+        updateAIMessage(aiId, msg => ({
+          ...msg,
+          status: event.stage,
+          statusText: event.message, // keep loading text separate
+        }));
+        break;
+      case "source":
+        updateAIMessage(aiId, msg => ({
+          ...msg,
+          sources: mapSources(event.data)
+        }));
+        break;
+      case "done":
+        updateAIMessage(aiId, msg => ({
+          ...msg,
+          status: "done",
+          statusText: "", // clean up
+          analysisTime: (
+            (event.timings?.rag_time_ms || 0) / 1000
+          ).toFixed(2) + 's',
+        }));
+        break;
+      case "error":
+        updateAIMessage(aiId, msg => ({
+          ...msg,
+          text: event.content,
+          status: "error",
+        }));
+        break;
+    }
+  };
+
+  const mapSources = (results) => {
+    return results.map(item => ({
+      service: item.type || "EMAIL",
+      dot: item.type === "EMAIL" ? "#4a9eff" : "#a855f7",
+      title: item.subject || "No Subject",
+      excerpt: (item.content || "").slice(0, 120),
+    }));
   };
 
   return (
@@ -248,86 +314,6 @@ export default function OmniSearchPage() {
           </div>
         </div>
 
-        {/* Right panel */}
-        <div style={{
-          width: 180, borderLeft: '1px solid var(--border-dim)',
-          padding: '20px 14px', background: 'var(--bg-sidebar)',
-          display: 'flex', flexDirection: 'column', gap: 20,
-        }}>
-          {/* Active context */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, letterSpacing: '0.14em', color: 'var(--text-muted)', marginBottom: 10 }}>
-              <span>ACTIVE_CONTEXT</span>
-              <span style={{ color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--accent-green)', display: 'inline-block', animation: 'pulse-dot 2s ease-in-out infinite' }} />
-                SYNCING...
-              </span>
-            </div>
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-mid)',
-              padding: '10px 12px',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, background: 'rgba(168,85,247,0.2)', border: '1px solid rgba(168,85,247,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
-                  💼
-                </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
-                  WORK_PROFILE
-                </span>
-              </div>
-              <div style={{ fontSize: 8, color: 'var(--text-muted)', lineHeight: 1.6, letterSpacing: '0.08em' }}>
-                ENCRYPTION: AES_256_ACTIVE<br />
-                NODE_US_EAST_CLUSTER_01
-              </div>
-            </div>
-          </div>
-
-          {/* Integrated modules */}
-          <div>
-            <div style={{ fontSize: 8, letterSpacing: '0.14em', color: 'var(--text-muted)', marginBottom: 10 }}>
-              INTEGRATED_MODULES
-            </div>
-            {[
-              { name: 'GMAIL', status: 'LIVE', color: 'var(--accent-blue)' },
-              { name: 'TELEGRAM', status: 'LIVE', color: 'var(--accent-purple)' },
-              { name: 'JIRA', status: 'LINK_OFFLINE', color: 'var(--text-muted)' },
-            ].map(mod => (
-              <div key={mod.name} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 10px',
-                border: '1px solid var(--border-dim)',
-                background: 'var(--bg-input)',
-                marginBottom: 4,
-              }}>
-                <span style={{ fontSize: 10, letterSpacing: '0.1em', color: 'var(--text-secondary)' }}>{mod.name}</span>
-                <span style={{ fontSize: 7, letterSpacing: '0.12em', color: mod.color }}>
-                  {mod.status === 'LIVE' && <span style={{ width: 4, height: 4, borderRadius: '50%', background: mod.color, display: 'inline-block', marginRight: 3 }} />}
-                  {mod.status}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Neural load */}
-          <div style={{ marginTop: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)', marginBottom: 8 }}>
-              <span>NEURAL_LOAD</span>
-              <span style={{ color: 'var(--text-dim)' }}>64%</span>
-            </div>
-            <div style={{ height: 3, background: 'var(--border-dim)', marginBottom: 4 }}>
-              <div style={{ height: '100%', width: '64%', background: 'linear-gradient(90deg, var(--accent-blue), var(--accent-purple))' }} />
-            </div>
-            <div style={{ display: 'flex', gap: 2 }}>
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} style={{
-                  flex: 1, height: 3,
-                  background: i < 8 ? (i < 4 ? 'var(--accent-blue)' : 'var(--accent-purple)') : 'var(--border-dim)',
-                }} />
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

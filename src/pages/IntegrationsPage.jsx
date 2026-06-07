@@ -3,9 +3,12 @@ import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIntegration } from '../hook/integration.hook';
+import { useCommunication } from '../hook/communication.hook';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
 import StatusBar from '../components/ui/StatusBar';
+import gmail from "../../asset/gmail.png";
+import telegram from "../../asset/telegram.png";
 
 const MailIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a9eff" strokeWidth="1.5">
@@ -54,6 +57,8 @@ const DiamondIcon = () => (
   </svg>
 );
 
+// src/pages/IntegrationsPage.jsx
+
 function IntegrationCard({
   type,
   id,
@@ -65,310 +70,345 @@ function IntegrationCard({
   onSync,
   onReconnect,
 }) {
-  const [isHoverDisconnect, setIsHoverDisconnect] = useState(false);
-
   const hasRefreshToken = !!integration?.refreshToken;
   const isActiveFlag = integration?.isActive === true;
   const isDisconnectedFlag = integration?.isActive === false;
+  const isSyncing = integration?.syncStatus === "SYNCING";
 
-  const isActive = hasRefreshToken && isActiveFlag;
-  const isDisconnected = hasRefreshToken && isDisconnectedFlag;
+  const status = useMemo(() => {
+    if (!hasRefreshToken) return "NOT_INTEGRATED";
+    if (isSyncing) return "SYNCING";
+    if (isActiveFlag) return "ACTIVE";
+    if (isDisconnectedFlag) return "DISCONNECTED";
+    return "NOT_INTEGRATED";
+  }, [hasRefreshToken, isSyncing, isActiveFlag, isDisconnectedFlag]);
 
-  const status = isActive
-    ? "ACTIVE"
-    : isDisconnected
-    ? "DISCONNECTED"
-    : "NOT_INTEGRATED";
+  const lastSync = integration?.lastSyncedAt
+    ? new Date(integration.lastSyncedAt).toLocaleString()
+    : null;
 
-  const bridgeId = integration?.id || id || "—";
-
-  const lastSync = integration?.synced_at
-    ? new Date(integration.synced_at).toLocaleString()
-    : "—";
-
-  const activeFilters = Array.isArray(integration?.metadata?.filters)
-    ? integration.metadata.filters.join(", ")
-    : "None";
-
-  const statusStyles = {
-    ACTIVE: {
-      label: "Active",
-      color: "#22c55e",
-      bg: "rgba(34,197,94,.08)",
-      border: "rgba(34,197,94,.18)",
-      description: "Connected and syncing normally",
-    },
-    DISCONNECTED: {
-      label: "Disconnected",
-      color: "#f59e0b",
-      bg: "rgba(245,158,11,.08)",
-      border: "rgba(245,158,11,.18)",
-      description: "Connection requires attention",
-    },
-    NOT_INTEGRATED: {
-      label: "Not Integrated",
-      color: "var(--text-muted)",
-      bg: "rgba(255,255,255,.03)",
-      border: "rgba(255,255,255,.08)",
-      description: "No integration configured",
-    },
+  const theme = {
+    ACTIVE: { color: "#22c55e", bg: "rgba(34,197,94,.12)", label: "Connected" },
+    SYNCING: { color: "#60a5fa", bg: "rgba(96,165,250,.12)", label: "Syncing" },
+    DISCONNECTED: { color: "#f59e0b", bg: "rgba(245,158,11,.12)", label: "Disconnected" },
+    NOT_INTEGRATED: { color: "#a1a1aa", bg: "rgba(255,255,255,.06)", label: "Not connected" },
   };
 
-  const currentStatus = statusStyles[status];
-
-  const rowStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "10px 0",
-    borderBottom: "1px solid rgba(255,255,255,.05)",
-  };
+  const s = theme[status];
 
   return (
-    <div
-      style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border-dim)",
-        borderRadius: 16,
-        overflow: "hidden",
-        transition: "border-color .15s ease",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--border-mid)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--border-dim)";
-      }}
-    >
-      {/* TOP STATUS BAR */}
-      <div style={{ height: 3, background: currentStatus.color }} />
-
+    <div style={{ ...styles.card, borderColor: `${s.color}33` }}>
       {/* HEADER */}
-      <div style={{ padding: 20, paddingBottom: 16 }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 16,
-          }}
-        >
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 12,
-                background: "var(--bg-input)",
-                border: "1px solid var(--border-dim)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {icon}
-            </div>
-
-            <div>
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: 17,
-                  fontWeight: 700,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {name}
-              </h3>
-
-              <div
-                style={{
-                  marginTop: 4,
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                }}
-              >
-                {currentStatus.description}
-              </div>
+      <div style={styles.cardHeader}>
+        <div style={styles.left}>
+          <div style={styles.icon}>{icon}</div>
+          <div>
+            <div style={styles.title}>{name}</div>
+            <div style={styles.sub}>
+              {status === "ACTIVE" && "Running smoothly"}
+              {status === "SYNCING" && "Updating data"}
+              {status === "DISCONNECTED" && "Needs reconnection"}
+              {status === "NOT_INTEGRATED" && "Not connected yet"}
             </div>
           </div>
+        </div>
 
-          <div
-            style={{
-              padding: "5px 10px",
-              borderRadius: 999,
-              background: currentStatus.bg,
-              border: `1px solid ${currentStatus.border}`,
-              color: currentStatus.color,
-              fontSize: 12,
-              fontWeight: 600,
-            }}
-          >
-            ● {currentStatus.label}
-          </div>
+        <div style={{ ...styles.badge, background: s.bg, color: s.color }}>
+          ● {s.label}
         </div>
       </div>
 
-      {/* CONTENT */}
-      <div style={{ padding: "0 20px 20px" }}>
-        {status === "ACTIVE" && (
-          <>
-            <div
-              style={{
-                background: "rgba(255,255,255,.02)",
-                border: "1px solid rgba(255,255,255,.05)",
-                borderRadius: 12,
-                padding: "0 14px",
-                marginBottom: 18,
-              }}
-            >
-              <div style={rowStyle}>
-                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                  Last Sync
-                </span>
-                <span style={{ color: "var(--text-primary)", fontSize: 13 }}>
-                  {lastSync}
-                </span>
-              </div>
+      {/* BODY */}
+      <div style={styles.body}>
+        {(status === "ACTIVE" || status === "SYNCING") && (
+          <div style={styles.meta}>
+            {status === "ACTIVE" && (
+              <>
+                <Row label="Last sync" value={lastSync || "Never"} />
+                <Row label="ID" value={integration?.id || id} mono />
+              </>
+            )}
 
-              {/* <div style={rowStyle}>
-                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                  Filters
-                </span>
-                <span style={{ color: "#60a5fa", fontSize: 13 }}>
-                  {activeFilters}
-                </span>
-              </div> */}
-
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0" }}>
-                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                  Bridge ID
-                </span>
-                <span style={{ fontFamily: "monospace", fontSize: 13 }}>
-                  {bridgeId}
-                </span>
-              </div>
-            </div>
-
-            {/* DISCONNECT BUTTON WITH HOVER FIX */}
-            <button
-              onClick={onDisconnect}
-              onMouseEnter={() => setIsHoverDisconnect(true)}
-              onMouseLeave={() => setIsHoverDisconnect(false)}
-              style={{
-                flex: 1,
-                height: 42,
-                width: "100%",
-                borderRadius: 10,
-                fontWeight: 600,
-                cursor: "pointer",
-                border: isHoverDisconnect
-                  ? "1px solid rgba(239,68,68,.25)"
-                  : "1px solid var(--border-mid)",
-                background: isHoverDisconnect
-                  ? "rgba(239,68,68,.08)"
-                  : "transparent",
-                color: isHoverDisconnect ? "#ef4444" : "var(--text-primary)",
-                transition: "all .15s ease",
-              }}
-            >
-              Disconnect
-            </button>
-          </>
+            {status === "SYNCING" && (
+              <div style={styles.syncBox}>Syncing in progress…</div>
+            )}
+          </div>
         )}
 
         {status === "DISCONNECTED" && (
-          <>
-            <div
-              style={{
-                background: "rgba(245,158,11,.06)",
-                border: "1px solid rgba(245,158,11,.15)",
-                borderRadius: 12,
-                padding: 16,
-                marginBottom: 18,
-              }}
-            >
-              <div style={{ fontWeight: 600, color: "#f59e0b" }}>
-                Authentication Required
-              </div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-                Reconnect to resume syncing.
-              </div>
-            </div>
-
-            <button
-              onClick={onReconnect}
-              style={{
-                width: "100%",
-                height: 44,
-                border: "none",
-                borderRadius: 10,
-                background: "#f59e0b",
-                color: "#111827",
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all .15s ease",
-              }}
-            >
-              Reconnect Account
-            </button>
-          </>
+          <div style={styles.warn}>Connection lost. Please reconnect.</div>
         )}
 
         {status === "NOT_INTEGRATED" && (
-          <>
-            <div
-              style={{
-                border: "1px dashed rgba(255,255,255,.08)",
-                borderRadius: 12,
-                padding: 24,
-                textAlign: "center",
-                marginBottom: 18,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "var(--text-primary)",
-                }}
-              >
-                Integrate {name}
-              </div>
-
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                  lineHeight: 1.6,
-                }}
-              >
-                Enable synchronization by connecting your {name} account.
-              </div>
+          <div style={styles.empty}>
+            <div style={{ fontWeight: 700 }}>Connect {name}</div>
+            <div style={{ fontSize: 12, opacity: 0.6 }}>
+              Enable automation in one click
             </div>
+          </div>
+        )}
 
+        {/* ACTIONS */}
+        <div style={styles.actions}>
+          {status === "ACTIVE" && (
+            <>
+              <button
+                onClick={() => onSync?.(integration?.id)}
+                style={styles.syncBtn}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+              >
+                Sync
+              </button>
+              <button
+                onClick={onDisconnect}
+                style={styles.dangerBtn}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+              >
+                Disconnect
+              </button>
+            </>
+          )}
+
+          {status === "SYNCING" && (
+            <button disabled style={styles.disabled}>Syncing…</button>
+          )}
+
+          {status === "DISCONNECTED" && (
+            <button
+              onClick={onReconnect}
+              style={styles.warnBtn}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
+            >
+              Reconnect
+            </button>
+          )}
+
+          {status === "NOT_INTEGRATED" && (
             <button
               onClick={() => onIntegrate?.(type)}
-              style={{
-                width: "100%",
-                height: 44,
-                border: "none",
-                borderRadius: 10,
-                background: "#7c3aed",
-                color: "#fff",
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all .15s ease",
-              }}
+              style={styles.connectBtn}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
             >
-              Integrate {name}
+              Connect {name}
             </button>
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
+function Row({ label, value, mono }) {
+  return (
+    <div style={styles.row}>
+      <span style={styles.label}>{label}</span>
+      <span style={{ ...styles.value, fontFamily: mono ? "monospace" : "" }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+
+/* ─────────────────────────────
+    STYLES (UPDATED LAYOUT)
+───────────────────────────── */
+
+const styles = {
+  page: {
+    minHeight: "100vh",
+    background: "#070a0f",
+    color: "#fff",
+  },
+
+  shell: {
+    display: "flex",
+    minHeight: "calc(100vh - 64px)", // navbar fix
+  },
+
+  main: {
+    flex: 1,
+    padding: 32,
+  },
+
+  pageTitle: {
+    fontSize: 20,
+    fontWeight: 700,
+    marginBottom: 20,
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 20,
+  },
+
+  /* CARD - Unchanging, static layout container */
+  card: {
+    borderRadius: 18,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    padding: 16,
+    transition: "border-color 0.2s ease", // only color shifts smoothly if status changes
+  },
+
+  cardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center", // Vertically centers header items together
+    marginBottom: 14,
+  },
+
+  left: {
+    display: "flex",
+    gap: 12,
+    alignItems: "center",
+  },
+
+  icon: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.06)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  title: { fontSize: 15, fontWeight: 700 },
+
+  sub: { fontSize: 12, opacity: 0.6 },
+
+  badge: {
+    fontSize: 12,
+    padding: "6px 12px",
+    borderRadius: 999,
+    fontWeight: 600,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    height: "fit-content",
+  },
+
+  body: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+
+  meta: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+  },
+
+  row: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: 13,
+  },
+
+  label: { opacity: 0.5 },
+
+  value: { color: "#fff" },
+
+  syncBox: {
+    padding: 10,
+    borderRadius: 10,
+    background: "rgba(96,165,250,0.08)",
+    fontSize: 13,
+    display: "flex",
+    alignItems: "center",
+  },
+
+  warn: {
+    padding: 10,
+    borderRadius: 10,
+    background: "rgba(245,158,11,0.08)",
+    fontSize: 13,
+    display: "flex",
+    alignItems: "center",
+  },
+
+  empty: {
+    padding: "4px 10px",
+    opacity: 0.8,
+  },
+
+  actions: {
+    display: "flex",
+    gap: 10,
+    marginTop: 6,
+  },
+
+  /* BUTTON INTERACTIVITY CONFIGURATION */
+  connectBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    border: "none",
+    background: "#7c3aed",
+    color: "#fff",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "opacity 0.2s ease",
+  },
+
+  /* Matched to the Green Active Theme */
+  syncBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    background: "rgba(34, 197, 94, 0.15)",
+    border: "1px solid rgba(34, 197, 94, 0.3)",
+    color: "#4ade80",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "opacity 0.2s ease",
+  },
+
+  dangerBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 12,
+    background: "rgba(239,68,68,0.08)",
+    border: "1px solid rgba(239,68,68,0.3)",
+    color: "#f87171",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "opacity 0.2s ease",
+  },
+
+  warnBtn: {
+    width: "100%",
+    height: 40,
+    borderRadius: 12,
+    background: "rgba(245,158,11,0.1)",
+    border: "1px solid rgba(245,158,11,0.3)",
+    color: "#fbbf24",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "opacity 0.2s ease",
+  },
+
+  disabled: {
+    width: "100%",
+    height: 40,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.06)",
+    border: "none",
+    color: "rgba(255,255,255,0.4)",
+    cursor: "not-allowed",
+  },
+};
+
+
 function FeatureCard({ icon, title, desc, gradient }) {
   return (
     <div style={{
@@ -409,133 +449,76 @@ export default function IntegrationsPage() {
     integrate,
   } = useIntegration();
 
+  const { sync } = useCommunication();
+
   const [integrations, setIntegrations] = useState([]);
 
-  // ─────────────────────────────────────
-  // SINGLE SOURCE OF TRUTH
-  // ─────────────────────────────────────
-  const refreshIntegrations = async () => {
-    try {
-      const res = await getIntegrationStatus(profileId);
-      setIntegrations(res?.data || []);
-    } catch (err) {
-      console.error("Failed to fetch integrations:", err);
-    }
+  const refresh = async () => {
+    const res = await getIntegrationStatus(profileId);
+    setIntegrations(res?.data || []);
   };
 
-  // ─────────────────────────────────────
-  // FIXED HANDLERS (MISSING BEFORE = CRASH)
-  // ─────────────────────────────────────
+  useEffect(() => {
+    if (!profileId) return;
+    refresh();
+    const interval = setInterval(refresh, 5000);
+    return () => clearInterval(interval);
+  }, [profileId]);
 
-  const handleDisconnect = async (integrationId) => {
-    try {
-      if (!integrationId) return;
+  const handleSync = async (type, profileId) => {
+    await sync(type, profileId);
+  };
 
-      await disconnectIntegration(integrationId);
-      await refreshIntegrations();
-    } catch (err) {
-      console.error("Disconnect error:", err);
-    }
+  const handleDisconnect = async (id) => {
+    await disconnectIntegration(id);
+    refresh();
   };
 
   const handleReconnect = async (type) => {
-    try {
-      if (!type) return;
-
-      await reconnectIntegration(profileId, type);
-      await refreshIntegrations();
-    } catch (err) {
-      console.error("Reconnect error:", err);
-    }
+    await reconnectIntegration(profileId, type);
+    refresh();
   };
 
   const handleIntegrate = async (type) => {
-    try {
-      await integrate(profileId, type);
-      await refreshIntegrations();
-    } catch (err) {
-      console.error("Integrate error:", err);
-    }
+    await integrate(profileId, type);
+    refresh();
   };
 
-  // ─────────────────────────────────────
-  // INIT LOAD
-  // ─────────────────────────────────────
-  useEffect(() => {
-    if (!profileId) return;
-    refreshIntegrations();
-  }, [profileId]);
-
-  const integrationMap = useMemo(() => {
+  const map = useMemo(() => {
     return new Map(integrations.map((i) => [i.type, i]));
   }, [integrations]);
 
-  const getIntegration = (type) => integrationMap.get(type);
+  const getIntegration = (type) => map.get(type);
 
-  const integrationList = [
-    {
-      name: "Gmail",
-      type: "GMAIL",
-      icon: (
-        <img
-          src="/asset/gmail.png"
-          alt="Gmail"
-          style={{ width: 22, height: 22, objectFit: "contain" }}
-        />
-      ),
-    },
-    {
-      name: "Telegram",
-      type: "TELEGRAM",
-      icon: (
-        <img
-          src="/asset/telegram.png"
-          alt="Telegram"
-          style={{ width: 22, height: 22, objectFit: "contain" }}
-        />
-      ),
-    },
-  ];
+const list = [
+  { name: "Gmail", type: "GMAIL", icon: <img src={gmail} alt="Gmail" style={{ width: 22, height: 22 }} /> },
+  { name: "Telegram", type: "TELEGRAM", icon: <img src={telegram} alt="Telegram" style={{ width: 22, height: 22 }} /> },
+];
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', padding: '5px 18px', background: 'rgba(10,11,14,.95)', borderBottom: '1px solid var(--border-dim)' }}>
-        Integration Management
-      </div>
+    <div style={styles.page}>
       <Navbar showSidebar />
 
-      <div style={{ display: "flex", flex: 1 }}>
-
+      <div style={styles.shell}>
         <Sidebar />
 
-        <main style={{ flex: 1, padding: 32 }}>
-          <h1>NEURAL INTEGRATIONS</h1>
+        <main style={styles.main}>
+          <h1 style={styles.pageTitle}>Integrations</h1>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 20,
-              marginTop: 20,
-            }}
-          >
-            {integrationList.map((item) => {
-              const integration = getIntegration(item.type);
-
-              return (
-                <IntegrationCard
-                  key={item.type}
-                  name={item.name}
-                  type={item.type}
-                  icon={item.icon}
-                  integration={integration}
-                  onIntegrate={handleIntegrate}
-                  onDisconnect={() => handleDisconnect(integration?.id)}
-                  onSync={() => {}}
-                  onReconnect={() => handleReconnect(item.type)}
-                />
-              );
-            })}
+          <div style={styles.grid}>
+            {list.map((item) => (
+              <IntegrationCard
+                key={item.type}
+                {...item}
+                integration={getIntegration(item.type)}
+                onIntegrate={handleIntegrate}
+                onDisconnect={() =>
+                  handleDisconnect(getIntegration(item.type)?.id)
+                }
+                onReconnect={() => handleReconnect(item.type)}
+                onSync={() => handleSync(item.type, profileId)}
+              />
+            ))}
           </div>
         </main>
       </div>
