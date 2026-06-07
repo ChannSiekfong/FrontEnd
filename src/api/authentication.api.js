@@ -31,9 +31,7 @@ export const loginAPI = async (email, password) => {
       password: password,
     });
 
-    console.log("(API) Login successful:", response.data);
     toast.success(response.data.message || "Login successful!");
-
     return response.data;
   } catch (error) {
     const message = error.response?.data?.message || "Login failed. Please try again.";

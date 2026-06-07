@@ -65,6 +65,8 @@ function IntegrationCard({
   onSync,
   onReconnect,
 }) {
+  const [isHoverDisconnect, setIsHoverDisconnect] = useState(false);
+
   const hasRefreshToken = !!integration?.refreshToken;
   const isActiveFlag = integration?.isActive === true;
   const isDisconnectedFlag = integration?.isActive === false;
@@ -78,36 +80,48 @@ function IntegrationCard({
     ? "DISCONNECTED"
     : "NOT_INTEGRATED";
 
-  const bridgeId = integration?.id || "—";
+  const bridgeId = integration?.id || id || "—";
 
-  const lastSync = integration?.created_at
-    ? new Date(integration.created_at).toLocaleString()
-    : "NEVER";
+  const lastSync = integration?.synced_at
+    ? new Date(integration.synced_at).toLocaleString()
+    : "—";
 
   const activeFilters = Array.isArray(integration?.metadata?.filters)
     ? integration.metadata.filters.join(", ")
-    : "NONE";
+    : "None";
 
-  const securityNote =
-    integration?.type === "GMAIL"
-      ? "SECURITY: OAUTH2 + AES-256"
-      : "ENCRYPTION: PENDING";
-
-  // ─────────────────────────────────────
-  // BUTTON STYLES (SUBTLE INTERACTIONS)
-  // ─────────────────────────────────────
-  const baseBtn = {
-    transition: "all 0.18s ease",
-    cursor: "pointer",
-    transform: "translateY(0px)",
+  const statusStyles = {
+    ACTIVE: {
+      label: "Active",
+      color: "#22c55e",
+      bg: "rgba(34,197,94,.08)",
+      border: "rgba(34,197,94,.18)",
+      description: "Connected and syncing normally",
+    },
+    DISCONNECTED: {
+      label: "Disconnected",
+      color: "#f59e0b",
+      bg: "rgba(245,158,11,.08)",
+      border: "rgba(245,158,11,.18)",
+      description: "Connection requires attention",
+    },
+    NOT_INTEGRATED: {
+      label: "Not Integrated",
+      color: "var(--text-muted)",
+      bg: "rgba(255,255,255,.03)",
+      border: "rgba(255,255,255,.08)",
+      description: "No integration configured",
+    },
   };
 
-  const hoverLift = {
-    transform: "translateY(-1px)",
-  };
+  const currentStatus = statusStyles[status];
 
-  const activePress = {
-    transform: "translateY(0px) scale(0.98)",
+  const rowStyle = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "10px 0",
+    borderBottom: "1px solid rgba(255,255,255,.05)",
   };
 
   return (
@@ -115,249 +129,246 @@ function IntegrationCard({
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-dim)",
-        padding: 20,
-        color: "var(--text-primary)",
+        borderRadius: 16,
+        overflow: "hidden",
+        transition: "border-color .15s ease",
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "var(--border-mid)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--border-dim)";
       }}
     >
+      {/* TOP STATUS BAR */}
+      <div style={{ height: 3, background: currentStatus.color }} />
+
       {/* HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              background: "var(--bg-input)",
-              border: "1px solid var(--border-mid)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {icon}
-          </div>
+      <div style={{ padding: 20, paddingBottom: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: 16,
+          }}
+        >
+          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-dim)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {icon}
+            </div>
 
-          <div>
-            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{name}</h3>
-
-            <div style={{ fontSize: 9, letterSpacing: "0.12em" }}>
-              <span
+            <div>
+              <h3
                 style={{
-                  color:
-                    status === "ACTIVE"
-                      ? "var(--accent-green)"
-                      : status === "DISCONNECTED"
-                      ? "#f59e0b"
-                      : "var(--text-dim)",
+                  margin: 0,
+                  fontSize: 17,
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
                 }}
               >
-                {status}
-              </span>
+                {name}
+              </h3>
+
+              <div
+                style={{
+                  marginTop: 4,
+                  fontSize: 13,
+                  color: "var(--text-muted)",
+                }}
+              >
+                {currentStatus.description}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
-          ID: {bridgeId}
+          <div
+            style={{
+              padding: "5px 10px",
+              borderRadius: 999,
+              background: currentStatus.bg,
+              border: `1px solid ${currentStatus.border}`,
+              color: currentStatus.color,
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            ● {currentStatus.label}
+          </div>
         </div>
       </div>
 
-      {/* ACTIVE */}
-      {status === "ACTIVE" && (
-        <>
-          <div
-            style={{
-              background: "var(--bg-input)",
-              padding: 12,
-              marginBottom: 14,
-              fontSize: 9,
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--text-dim)" }}>LAST SYNC</span>
-              <span>{lastSync}</span>
+      {/* CONTENT */}
+      <div style={{ padding: "0 20px 20px" }}>
+        {status === "ACTIVE" && (
+          <>
+            <div
+              style={{
+                background: "rgba(255,255,255,.02)",
+                border: "1px solid rgba(255,255,255,.05)",
+                borderRadius: 12,
+                padding: "0 14px",
+                marginBottom: 18,
+              }}
+            >
+              <div style={rowStyle}>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+                  Last Sync
+                </span>
+                <span style={{ color: "var(--text-primary)", fontSize: 13 }}>
+                  {lastSync}
+                </span>
+              </div>
+
+              {/* <div style={rowStyle}>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+                  Filters
+                </span>
+                <span style={{ color: "#60a5fa", fontSize: 13 }}>
+                  {activeFilters}
+                </span>
+              </div> */}
+
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0" }}>
+                <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+                  Bridge ID
+                </span>
+                <span style={{ fontFamily: "monospace", fontSize: 13 }}>
+                  {bridgeId}
+                </span>
+              </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-              <span style={{ color: "var(--text-dim)" }}>FILTERS</span>
-              <span style={{ color: "var(--accent-blue)" }}>{activeFilters}</span>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 10 }}>
-            {/* DISCONNECT */}
+            {/* DISCONNECT BUTTON WITH HOVER FIX */}
             <button
               onClick={onDisconnect}
+              onMouseEnter={() => setIsHoverDisconnect(true)}
+              onMouseLeave={() => setIsHoverDisconnect(false)}
               style={{
                 flex: 1,
-                padding: 10,
-                background: "var(--bg-input)",
-                border: "1px solid var(--border-mid)",
-                color: "var(--text-primary)",
-                ...baseBtn,
+                height: 42,
+                width: "100%",
+                borderRadius: 10,
+                fontWeight: 600,
+                cursor: "pointer",
+                border: isHoverDisconnect
+                  ? "1px solid rgba(239,68,68,.25)"
+                  : "1px solid var(--border-mid)",
+                background: isHoverDisconnect
+                  ? "rgba(239,68,68,.08)"
+                  : "transparent",
+                color: isHoverDisconnect ? "#ef4444" : "var(--text-primary)",
+                transition: "all .15s ease",
               }}
-              onMouseEnter={(e) => {
-                Object.assign(e.currentTarget.style, hoverLift);
-                e.currentTarget.style.borderColor = "var(--border-bright)";
-              }}
-              onMouseLeave={(e) => {
-                Object.assign(e.currentTarget.style, baseBtn);
-                e.currentTarget.style.borderColor = "var(--border-mid)";
-              }}
-              onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
-              onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
             >
-              DISCONNECT
+              Disconnect
             </button>
+          </>
+        )}
 
-            {/* SYNC */}
+        {status === "DISCONNECTED" && (
+          <>
+            <div
+              style={{
+                background: "rgba(245,158,11,.06)",
+                border: "1px solid rgba(245,158,11,.15)",
+                borderRadius: 12,
+                padding: 16,
+                marginBottom: 18,
+              }}
+            >
+              <div style={{ fontWeight: 600, color: "#f59e0b" }}>
+                Authentication Required
+              </div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                Reconnect to resume syncing.
+              </div>
+            </div>
+
             <button
-              onClick={() => onSync?.(integration)}
+              onClick={onReconnect}
               style={{
-                flex: 1,
-                padding: 10,
-                background: "rgba(74,158,255,0.12)",
-                border: "1px solid rgba(74,158,255,0.35)",
-                color: "var(--accent-blue)",
-                ...baseBtn,
+                width: "100%",
+                height: 44,
+                border: "none",
+                borderRadius: 10,
+                background: "#f59e0b",
+                color: "#111827",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all .15s ease",
               }}
-              onMouseEnter={(e) => {
-                Object.assign(e.currentTarget.style, hoverLift);
-                e.currentTarget.style.boxShadow =
-                  "0 0 0 3px rgba(74,158,255,0.12)";
-              }}
-              onMouseLeave={(e) => {
-                Object.assign(e.currentTarget.style, baseBtn);
-                e.currentTarget.style.boxShadow = "none";
-              }}
-              onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
-              onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
             >
-              SYNC
+              Reconnect Account
             </button>
-          </div>
-        </>
-      )}
+          </>
+        )}
 
-      {/* DISCONNECTED */}
-      {status === "DISCONNECTED" && (
-        <>
-          <div
-            style={{
-              border: "1px solid rgba(245, 158, 11, 0.35)",
-              background: "rgba(245, 158, 11, 0.08)",
-              padding: 18,
-              marginBottom: 14,
-            }}
-          >
-            <div style={{ fontSize: 11, color: "#f59e0b", marginBottom: 6 }}>
-              Integration paused
+        {status === "NOT_INTEGRATED" && (
+          <>
+            <div
+              style={{
+                border: "1px dashed rgba(255,255,255,.08)",
+                borderRadius: 12,
+                padding: 24,
+                textAlign: "center",
+                marginBottom: 18,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: "var(--text-primary)",
+                }}
+              >
+                Integrate {name}
+              </div>
+
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "var(--text-muted)",
+                  lineHeight: 1.6,
+                }}
+              >
+                Enable synchronization by connecting your {name} account.
+              </div>
             </div>
 
-            <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
-              This {name} connection was previously active. You can reconnect anytime.
-            </div>
-          </div>
-
-          <button
-            onClick={onReconnect}
-            style={{
-              width: "100%",
-              padding: 12,
-              background: "rgba(245, 158, 11, 0.12)",
-              border: "1px solid rgba(245, 158, 11, 0.35)",
-              color: "#f59e0b",
-              ...baseBtn,
-            }}
-            onMouseEnter={(e) => {
-              Object.assign(e.currentTarget.style, hoverLift);
-              e.currentTarget.style.boxShadow =
-                "0 0 0 3px rgba(245, 158, 11, 0.15)";
-            }}
-            onMouseLeave={(e) => {
-              Object.assign(e.currentTarget.style, baseBtn);
-              e.currentTarget.style.boxShadow = "none";
-            }}
-            onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
-            onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
-          >
-            RECONNECT {name.toUpperCase()}
-          </button>
-        </>
-      )}
-
-      {/* NOT INTEGRATED */}
-      {status === "NOT_INTEGRATED" && (
-        <>
-          <div
-            style={{
-              border: "1px solid var(--border-dim)",
-              background: "rgba(255,255,255,0.02)",
-              padding: 18,
-              marginBottom: 14,
-            }}
-          >
-            <div style={{ fontSize: 11, marginBottom: 6 }}>
-              No integration configured
-            </div>
-
-            <div style={{ fontSize: 9, color: "var(--text-muted)" }}>
-              Connect {name} to enable synchronization.
-            </div>
-          </div>
-
-          <button
-            onClick={() => onIntegrate?.(type)}
-            style={{
-              width: "100%",
-              padding: 12,
-              background: "rgba(168,85,247,0.12)",
-              border: "1px solid rgba(168,85,247,0.35)",
-              color: "#c084fc",
-              ...baseBtn,
-            }}
-            onMouseEnter={(e) => {
-              Object.assign(e.currentTarget.style, hoverLift);
-              e.currentTarget.style.boxShadow =
-                "0 0 0 3px rgba(168,85,247,0.12)";
-            }}
-            onMouseLeave={(e) => {
-              Object.assign(e.currentTarget.style, baseBtn);
-              e.currentTarget.style.boxShadow = "none";
-            }}
-            onMouseDown={(e) => Object.assign(e.currentTarget.style, activePress)}
-            onMouseUp={(e) => Object.assign(e.currentTarget.style, hoverLift)}
-          >
-            INTEGRATE {name.toUpperCase()}
-          </button>
-        </>
-      )}
-
-      {/* FOOTER */}
-      <div
-        style={{
-          marginTop: 10,
-          borderTop: "1px solid var(--border-dim)",
-          paddingTop: 10,
-          fontSize: 9,
-          color: "var(--text-muted)",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <span>{securityNote}</span>
-
-        <span>
-          {status === "ACTIVE"
-            ? "LIVE"
-            : status === "DISCONNECTED"
-            ? "PAUSED"
-            : "EMPTY"}
-        </span>
+            <button
+              onClick={() => onIntegrate?.(type)}
+              style={{
+                width: "100%",
+                height: 44,
+                border: "none",
+                borderRadius: 10,
+                background: "#7c3aed",
+                color: "#fff",
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "all .15s ease",
+              }}
+            >
+              Integrate {name}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 }
-
 function FeatureCard({ icon, title, desc, gradient }) {
   return (
     <div style={{
@@ -488,9 +499,13 @@ export default function IntegrationsPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', padding: '5px 18px', background: 'rgba(10,11,14,.95)', borderBottom: '1px solid var(--border-dim)' }}>
+        Integration Management
+      </div>
       <Navbar showSidebar />
 
       <div style={{ display: "flex", flex: 1 }}>
+
         <Sidebar />
 
         <main style={{ flex: 1, padding: 32 }}>
