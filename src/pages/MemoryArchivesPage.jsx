@@ -142,7 +142,7 @@ export default function MemoryArchivesPage() {
       <div style={{ display: 'flex', flex: 1, alignItems: 'flex-start' }}>
         <Sidebar />
 
-        <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto', marginLeft: 200 }}>
+        <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto', marginLeft: 210 }}>
           {/* History list */}
           <div style={{ maxWidth: 620 }}>
             {Object.entries(HISTORY).map(([day, items]) => (

@@ -1,41 +1,59 @@
 // src/pages/OmniSearchPage.jsx
-import { useState, useRef, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Navbar from '../components/layout/Navbar';
-import Sidebar from '../components/layout/Sidebar';
-import StatusBar from '../components/ui/StatusBar';
-import { useSearch } from '../hook/search.hook';
-import { useChat } from '../hook/chat.hook';
+import { useState, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import Navbar from "../components/layout/Navbar";
+import Sidebar from "../components/layout/Sidebar";
+import StatusBar from "../components/ui/StatusBar";
+import { useSearch } from "../hook/search.hook";
+import { useChat } from "../hook/chat.hook";
 
 const SendIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
 const ExtLinkIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+  <svg
+    width="11"
+    height="11"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+  >
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
   </svg>
 );
 
-const INITIAL_MESSAGES = [
-
-];
+const INITIAL_MESSAGES = [];
 
 function UserMessage({ msg }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
-      <div style={{
-        background: '#1a2235',
-        border: '1px solid var(--border-mid)',
-        borderRadius: '8px 8px 0 8px',
-        padding: '10px 16px',
-        maxWidth: '65%',
-        fontSize: 13,
-        color: 'var(--text-primary)',
-        lineHeight: 1.5,
-      }}>
+    <div
+      style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}
+    >
+      <div
+        style={{
+          background: "#1a2235",
+          border: "1px solid var(--border-mid)",
+          borderRadius: "8px 8px 0 8px",
+          padding: "10px 16px",
+          maxWidth: "65%",
+          fontSize: 13,
+          color: "var(--text-primary)",
+          lineHeight: 1.5,
+        }}
+      >
         {msg.text}
       </div>
     </div>
@@ -44,96 +62,175 @@ function UserMessage({ msg }) {
 
 function AiMessage({ msg, onClick, dots }) {
   return (
-    <div
-    style={{ marginBottom: 8}}>
+    <div style={{ marginBottom: 8 }}>
       {/* AI header */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '6px 14px',
-        background: 'var(--bg-input)',
-        borderTop: '1px solid var(--border-mid)',
-        borderLeft: '1px solid var(--border-mid)',
-        borderRight: '1px solid var(--border-mid)',
-        borderRadius: '6px',
-        fontSize: 9, letterSpacing: '0.14em',
-      }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', display: 'inline-block', border: '1px solid var(--bg-input)' }} />
-          <span style={{ color: 'var(--accent-blue)' }}>Context Buddy</span>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "6px 14px",
+          background: "var(--bg-input)",
+          borderTop: "1px solid var(--border-mid)",
+          borderLeft: "1px solid var(--border-mid)",
+          borderRight: "1px solid var(--border-mid)",
+          borderRadius: "6px",
+          fontSize: 9,
+          letterSpacing: "0.14em",
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "var(--accent-blue)",
+              display: "inline-block",
+              border: "1px solid var(--bg-input)",
+            }}
+          />
+          <span style={{ color: "var(--accent-blue)" }}>Context Buddy</span>
         </span>
-        <span style={{ color: 'var(--text-muted)' }}>VER_4.2.0</span>
+        <span style={{ color: "var(--text-muted)" }}>VER_4.2.0</span>
       </div>
 
       {/* AI body */}
-      <div style={{
-        border: '1px solid var(--border-mid)',
-        background: 'var(--bg-card)',
-        padding: '16px',
-      }}>
-        <p style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 14, lineHeight: 1.6 }}>
+      <div
+        style={{
+          border: "1px solid var(--border-mid)",
+          background: "var(--bg-card)",
+          padding: "16px",
+        }}
+      >
+        <p
+          style={{
+            fontSize: 13,
+            color: "var(--text-primary)",
+            marginBottom: 14,
+            lineHeight: 1.6,
+          }}
+        >
           {msg.statusText && msg.text === "" && (
             <span style={{ opacity: 0.6 }}>
-              {msg.statusText}{dots}
+              {msg.statusText}
+              {dots}
             </span>
           )}
-          {msg.text && (
-            <span style={{ opacity: 0.9 }}>
-              {msg.text}
-            </span>
-          )}
+          {msg.text && <span style={{ opacity: 0.9 }}>{msg.text}</span>}
           {msg.status === "streaming" && (
             <span style={{ opacity: 0.7 }}>▍</span>
           )}
         </p>
 
         {msg.sources && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 10,
+              marginBottom: 14,
+            }}
+          >
             {msg.sources.map((src, i) => (
-              <div key={i} style={{
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-mid)',
-                padding: '12px 14px',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, letterSpacing: '0.14em', color: src.dot }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: src.dot, display: 'inline-block', border: '1px solid var(--bg-input)' }} />
+              <div
+                key={i}
+                style={{
+                  background: "var(--bg-input)",
+                  border: "1px solid var(--border-mid)",
+                  padding: "12px 14px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 6,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 5,
+                      fontSize: 9,
+                      letterSpacing: "0.14em",
+                      color: src.dot,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 5,
+                        height: 5,
+                        borderRadius: "50%",
+                        background: src.dot,
+                        display: "inline-block",
+                        border: "1px solid var(--bg-input)",
+                      }}
+                    />
                     {src.service}
                   </span>
                   <ExtLinkIcon />
                 </div>
-                <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 4, fontFamily: 'var(--font-display)' }}>
+                <p
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    marginBottom: 4,
+                    fontFamily: "var(--font-display)",
+                  }}
+                >
                   {src.title}
                 </p>
-                <p style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>{src.excerpt}</p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    color: "var(--text-dim)",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {src.excerpt}
+                </p>
               </div>
             ))}
           </div>
         )}
 
         {msg.note && (
-          <p style={{ fontSize: 12, color: 'var(--text-dim)', fontStyle: 'italic', lineHeight: 1.6 }}>
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--text-dim)",
+              fontStyle: "italic",
+              lineHeight: 1.6,
+            }}
+          >
             {msg.note}
           </p>
         )}
       </div>
 
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '6px 14px',
-        background: 'var(--bg-input)',
-        borderBottom: '1px solid var(--border-mid)',
-        borderLeft: '1px solid var(--border-mid)',
-        borderRight: '1px solid var(--border-mid)',
-        borderRadius: '0 0 6px 6px',
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "6px 14px",
+          background: "var(--bg-input)",
+          borderBottom: "1px solid var(--border-mid)",
+          borderLeft: "1px solid var(--border-mid)",
+          borderRight: "1px solid var(--border-mid)",
+          borderRadius: "0 0 6px 6px",
+        }}
+      >
         {msg.rawSources?.length > 0 && (
           <div
             style={{
               marginTop: 6,
-              display: 'flex',
-              justifyContent: 'flex-end',
+              display: "flex",
+              justifyContent: "flex-end",
             }}
           >
             <div
@@ -142,28 +239,33 @@ function AiMessage({ msg, onClick, dots }) {
                 onClick?.();
               }}
               style={{
-                display: 'flex',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
                 gap: 8,
-                cursor: 'pointer',
-                padding: '6px 10px',
+                cursor: "pointer",
+                padding: "6px 10px",
                 borderRadius: 999,
-                border: '1px solid rgba(74,158,255,.3)',
-                background: 'rgba(74,158,255,.1)',
+                border: "1px solid rgba(74,158,255,.3)",
+                background: "rgba(74,158,255,.1)",
                 fontSize: 10,
-                letterSpacing: '.08em',
-                transition: 'all .2s ease',
+                letterSpacing: ".08em",
+                transition: "all .2s ease",
               }}
             >
-              <span>
-                {msg.rawSources.length} VIEW SOURCES USED
-              </span>
+              <span>{msg.rawSources.length} VIEW SOURCES USED</span>
             </div>
           </div>
         )}
 
         {msg.analysisTime && (
-          <div style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', marginTop: 6 }}>
+          <div
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.12em",
+              color: "var(--text-muted)",
+              marginTop: 6,
+            }}
+          >
             ANALYSIS_COMPLETE // {msg.analysisTime}
           </div>
         )}
@@ -181,36 +283,42 @@ function ContextModal({ message, onClose }) {
     <div
       onClick={onClose}
       style={{
-        position: 'fixed',
+        position: "fixed",
         inset: 0,
-        background: 'rgba(0,0,0,.65)',
-        backdropFilter: 'blur(0.4px)',
+        background: "rgba(0,0,0,.65)",
+        backdropFilter: "blur(0.4px)",
         zIndex: 9999,
-        display: 'flex',
-        justifyContent: 'flex-end',
+        display: "flex",
+        justifyContent: "flex-end",
       }}
     >
       {/* PANEL */}
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: '520px',
-          height: '100vh',
-          background: 'var(--bg-card)',
-          borderLeft: '1px solid var(--border-mid)',
-          display: 'flex',
-          flexDirection: 'column',
+          width: "520px",
+          height: "100vh",
+          background: "var(--bg-card)",
+          borderLeft: "1px solid var(--border-mid)",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         {/* HEADER */}
         <div
           style={{
-            padding: '18px',
-            borderBottom: '1px solid var(--border-mid)',
-            position: 'relative',
+            padding: "18px",
+            borderBottom: "1px solid var(--border-mid)",
+            position: "relative",
           }}
         >
-          <div style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--text-dim)' }}>
+          <div
+            style={{
+              fontSize: 10,
+              letterSpacing: ".14em",
+              color: "var(--text-dim)",
+            }}
+          >
             RETRIEVED SOURCES
           </div>
 
@@ -219,7 +327,7 @@ function ContextModal({ message, onClose }) {
               marginTop: 6,
               fontSize: 16,
               fontWeight: 600,
-              color: 'var(--text-primary)',
+              color: "var(--text-primary)",
             }}
           >
             {message.rawSources?.length || 0} sources used
@@ -229,26 +337,26 @@ function ContextModal({ message, onClose }) {
           <button
             onClick={onClose}
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: 14,
               right: 14,
               width: 32,
               height: 32,
               borderRadius: 8,
-              background: 'transparent',
-              border: '1px solid var(--border-mid)',
-              color: 'var(--text-dim)',
-              cursor: 'pointer',
-              transition: 'all .15s ease',
+              background: "transparent",
+              border: "1px solid var(--border-mid)",
+              color: "var(--text-dim)",
+              cursor: "pointer",
+              transition: "all .15s ease",
               fontSize: 16,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#ff4d4f';
-              e.currentTarget.style.borderColor = '#ff4d4f';
+              e.currentTarget.style.color = "#ff4d4f";
+              e.currentTarget.style.borderColor = "#ff4d4f";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.color = 'var(--text-dim)';
-              e.currentTarget.style.borderColor = 'var(--border-mid)';
+              e.currentTarget.style.color = "var(--text-dim)";
+              e.currentTarget.style.borderColor = "var(--border-mid)";
             }}
           >
             ×
@@ -259,7 +367,7 @@ function ContextModal({ message, onClose }) {
         <div
           style={{
             flex: 1,
-            overflowY: 'auto',
+            overflowY: "auto",
             padding: 14,
           }}
         >
@@ -269,17 +377,15 @@ function ContextModal({ message, onClose }) {
             return (
               <div
                 key={source.id}
-                onClick={() =>
-                  setExpandedSource(expanded ? null : source.id)
-                }
+                onClick={() => setExpandedSource(expanded ? null : source.id)}
                 style={{
                   marginBottom: 24,
                   padding: 14,
                   borderRadius: 10,
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  transition: 'transform .15s ease, border-color .15s ease',
-                  cursor: 'pointer',
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  transition: "transform .15s ease, border-color .15s ease",
+                  cursor: "pointer",
                 }}
               >
                 {/* TITLE */}
@@ -288,28 +394,28 @@ function ContextModal({ message, onClose }) {
                   style={{
                     fontSize: 18,
                     fontWeight: 700,
-                    color: 'var(--text-primary)',
+                    color: "var(--text-primary)",
                     marginBottom: 6,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
-                  {source.subject || 'No subject'}
+                  {source.subject || "No subject"}
                 </div>
 
                 {/* META ROW */}
                 <div
                   style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
+                    display: "flex",
+                    justifyContent: "space-between",
                     fontSize: 11,
-                    color: 'var(--text-dim)',
+                    color: "var(--text-dim)",
                     marginBottom: 10,
                   }}
                 >
                   <span>{source.sender}</span>
-                  <span style={{ textTransform: 'uppercase', opacity: 0.7 }}>
+                  <span style={{ textTransform: "uppercase", opacity: 0.7 }}>
                     {source.type}
                   </span>
                 </div>
@@ -319,31 +425,29 @@ function ContextModal({ message, onClose }) {
                   style={{
                     fontSize: 12,
                     lineHeight: 1.6,
-                    color: 'var(--text-primary)',
+                    color: "var(--text-primary)",
                     opacity: 0.9,
                   }}
                 >
-                  {expanded
-                    ? source.content
-                    : source.content.slice(0, 140)}
+                  {expanded ? source.content : source.content.slice(0, 140)}
                 </div>
 
                 {/* FOOTER */}
                 <div
                   style={{
                     marginTop: 12,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   {/* RELEVANCE (GREEN not too dark  but subtle) */}
                   <div
                     style={{
                       fontSize: 11,
-                      color: 'var(--accent-green)',
-                      background: 'rgba(72,187,120,0.1)',
-                      padding: '2px 6px',
+                      color: "var(--accent-green)",
+                      background: "rgba(72,187,120,0.1)",
+                      padding: "2px 6px",
                       borderRadius: 999,
                       opacity: 0.9,
                     }}
@@ -356,12 +460,12 @@ function ContextModal({ message, onClose }) {
                     <div
                       style={{
                         fontSize: 11,
-                        color: 'var(--text-dim)',
-                        cursor: 'pointer',
-                        userSelect: 'none',
+                        color: "var(--text-dim)",
+                        cursor: "pointer",
+                        userSelect: "none",
                       }}
                     >
-                      {expanded ? 'Show less ↑' : 'Show more ↓'}
+                      {expanded ? "Show less ↑" : "Show more ↓"}
                     </div>
                   )}
                 </div>
@@ -379,13 +483,15 @@ export default function OmniSearchPage() {
   const { fetch_conversation } = useChat();
   const location = useLocation();
 
-  const chatId = new URLSearchParams(location.search).get('chatId');
-  const currentProfileId = new URLSearchParams(location.search).get('profileId');
+  const chatId = new URLSearchParams(location.search).get("chatId");
+  const currentProfileId = new URLSearchParams(location.search).get(
+    "profileId",
+  );
 
   const [dots, setDots] = useState(".");
 
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef(null);
 
@@ -424,7 +530,7 @@ export default function OmniSearchPage() {
   }, [chatId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -448,7 +554,7 @@ export default function OmniSearchPage() {
 
     const aiId = Date.now() + 1;
 
-    setMessages(prev => [
+    setMessages((prev) => [
       ...prev,
       {
         id: Date.now(),
@@ -462,62 +568,67 @@ export default function OmniSearchPage() {
         text: "",
         sources: [],
         status: "searching",
-        statusText: "Building answer with AI..."
-      }
+        statusText: "Building answer with AI...",
+      },
     ]);
 
     setInput("");
 
-    await search(text, aiId, (event) => {
-      handleStreamEvent(event, aiId);
-    }, chatId, currentProfileId);
+    await search(
+      text,
+      aiId,
+      (event) => {
+        handleStreamEvent(event, aiId);
+      },
+      chatId,
+      currentProfileId,
+    );
   };
 
   const updateAIMessage = (aiId, updater) => {
-    setMessages(prev =>
-      prev.map(msg => {
-        if(msg.id !== aiId) return msg;
+    setMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== aiId) return msg;
         return updater(msg);
-      })
-    )
-  }
+      }),
+    );
+  };
 
   const handleStreamEvent = (event, aiId) => {
     switch (event.type) {
       case "token":
-        updateAIMessage(aiId, msg => ({
+        updateAIMessage(aiId, (msg) => ({
           ...msg,
-          text: (msg.text || '') + event.content,
+          text: (msg.text || "") + event.content,
           status: "streaming",
           statusText: "",
         }));
         break;
       case "status":
-        updateAIMessage(aiId, msg => ({
+        updateAIMessage(aiId, (msg) => ({
           ...msg,
           status: event.stage,
           statusText: event.message,
         }));
         break;
       case "source":
-        updateAIMessage(aiId, msg => ({
+        updateAIMessage(aiId, (msg) => ({
           ...msg,
-          sources: mapSources(event.data)
+          sources: mapSources(event.data),
         }));
         break;
       case "done":
-        updateAIMessage(aiId, msg => ({
+        updateAIMessage(aiId, (msg) => ({
           ...msg,
           status: "done",
           statusText: "",
           rawSources: event.sources || [],
-          analysisTime: (
-            (event.timings?.rag_time_ms || 0) / 1000
-          ).toFixed(2) + 's',
+          analysisTime:
+            ((event.timings?.rag_time_ms || 0) / 1000).toFixed(2) + "s",
         }));
         break;
       case "error":
-        updateAIMessage(aiId, msg => ({
+        updateAIMessage(aiId, (msg) => ({
           ...msg,
           text: event.content,
           status: "error",
@@ -527,7 +638,7 @@ export default function OmniSearchPage() {
   };
 
   const mapSources = (results) => {
-    return results.map(item => ({
+    return results.map((item) => ({
       service: item.type || "EMAIL",
       dot: item.type === "EMAIL" ? "#4a9eff" : "#a855f7",
       title: item.subject || "No Subject",
@@ -536,195 +647,251 @@ export default function OmniSearchPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-base)' }}>
-      <div style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '0.1em', padding: '5px 18px', background: 'rgba(10,11,14,.95)', borderBottom: '1px solid var(--border-dim)' }}>
-        AI Search Dashboard
-      </div>
-      <Navbar showSidebar />
-
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <Sidebar />
-
-        {/* Main chat area */}
-        <div style={{ flex: 1, display: 'flex', marginLeft: 200, flexDirection: 'column', overflow: 'hidden' }}>
-<div
-  style={{
-    flex: 1,
-    overflowY: isEmptyChat ? 'hidden' : 'auto',
-    padding: isEmptyChat ? 0 : '24px 24px 0',
-  }}
->
-  {isEmptyChat ? (
     <div
       style={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: '0 40px',
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: "var(--bg-base)",
       }}
     >
       <div
         style={{
-          textAlign: 'center',
-          marginBottom: 40,
+          fontSize: 10,
+          color: "var(--text-muted)",
+          letterSpacing: "0.1em",
+          padding: "5px 18px",
+          background: "rgba(10,11,14,.95)",
+          borderBottom: "1px solid var(--border-dim)",
         }}
       >
-        <div
-          style={{
-            fontSize: 42,
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-            marginBottom: 12,
-          }}
-        >
-          Context Buddy
-        </div>
-
-        <div
-          style={{
-            color: 'var(--text-dim)',
-            fontSize: 15,
-            maxWidth: 650,
-            lineHeight: 1.7,
-          }}
-        >
-          Search across your emails, notes, documents,
-          conversations and memories using AI-powered retrieval.
-        </div>
+        AI Search Dashboard
       </div>
+      <Navbar showSidebar />
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 12,
-          width: '100%',
-          maxWidth: 760,
-        }}
-      >
-        {[
-          "Summarize recent emails",
-          "What projects am I working on?",
-          "Find conversations about AI",
-          "Show upcoming deadlines"
-        ].map((suggestion) => (
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <Sidebar />
+
+        {/* Main chat area */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            marginLeft: 210,
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
           <div
-            key={suggestion}
-            onClick={() => setInput(suggestion)}
             style={{
-              cursor: 'pointer',
-              padding: 16,
-              border: '1px solid var(--border-mid)',
-              background: 'var(--bg-card)',
-              borderRadius: 10,
-              transition: 'all .2s ease',
+              flex: 1,
+              overflowY: isEmptyChat ? "hidden" : "auto",
+              padding: isEmptyChat ? 0 : "24px 24px 0",
+            }}
+          >
+            {isEmptyChat ? (
+              <div
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: "0 40px",
+                }}
+              >
+                <div
+                  style={{
+                    textAlign: "center",
+                    marginBottom: 40,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 42,
+                      fontWeight: 700,
+                      color: "var(--text-primary)",
+                      marginBottom: 12,
+                    }}
+                  >
+                    Context Buddy
+                  </div>
+
+                  <div
+                    style={{
+                      color: "var(--text-dim)",
+                      fontSize: 15,
+                      maxWidth: 650,
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    Search across your emails, notes, documents, conversations
+                    and memories using AI-powered retrieval.
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                    width: "100%",
+                    maxWidth: 760,
+                  }}
+                >
+                  {[
+                    "Summarize recent emails",
+                    "What projects am I working on?",
+                    "Find conversations about AI",
+                    "Show upcoming deadlines",
+                  ].map((suggestion) => (
+                    <div
+                      key={suggestion}
+                      onClick={() => setInput(suggestion)}
+                      style={{
+                        cursor: "pointer",
+                        padding: 16,
+                        border: "1px solid var(--border-mid)",
+                        background: "var(--bg-card)",
+                        borderRadius: 10,
+                        transition: "all .2s ease",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: "var(--text-primary)",
+                        }}
+                      >
+                        {suggestion}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {messages.map((msg) => (
+                  <div key={msg.id}>
+                    {msg.type === "user" && (
+                      <>
+                        <UserMessage msg={msg} />
+                        <div
+                          style={{
+                            textAlign: "right",
+                            fontSize: 8,
+                            letterSpacing: "0.12em",
+                            color: "var(--text-muted)",
+                            marginBottom: 14,
+                          }}
+                        >
+                          USER_QUERY_SENT // {msg.time}
+                        </div>
+                      </>
+                    )}
+
+                    {msg.type === "ai" && (
+                      <AiMessage
+                        msg={msg}
+                        dots={dots}
+                        onClick={() => {
+                          if (msg.rawSources?.length) {
+                            setSelectedMessage(msg);
+                          }
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+
+                <div ref={bottomRef} />
+              </>
+            )}
+          </div>
+
+          {/* Input bar */}
+          <div
+            style={{
+              padding: isEmptyChat ? "0 24px 80px" : "14px 24px",
+              borderTop: isEmptyChat ? "none" : "1px solid var(--border-dim)",
+              width: isEmptyChat ? "900px" : "100%",
+              maxWidth: isEmptyChat ? "900px" : "unset",
+              alignSelf: "center",
             }}
           >
             <div
               style={{
-                fontSize: 13,
-                color: 'var(--text-primary)',
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                border: "1px solid var(--border-mid)",
+                background: "var(--bg-input)",
+                padding: "0 14px",
               }}
             >
-              {suggestion}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <>
-      {messages.map((msg) => (
-        <div key={msg.id}>
-          {msg.type === 'user' && (
-            <>
-              <UserMessage msg={msg} />
-              <div
+              <span
                 style={{
-                  textAlign: 'right',
-                  fontSize: 8,
-                  letterSpacing: '0.12em',
-                  color: 'var(--text-muted)',
-                  marginBottom: 14,
+                  fontSize: 9,
+                  letterSpacing: "0.12em",
+                  color: "var(--text-muted)",
+                  whiteSpace: "nowrap",
                 }}
               >
-                USER_QUERY_SENT // {msg.time}
-              </div>
-            </>
-          )}
-
-          {msg.type === 'ai' && (
-            <AiMessage
-              msg={msg}
-              dots={dots}
-              onClick={() => {
-                if (msg.rawSources?.length) {
-                  setSelectedMessage(msg);
-                }
-              }}
-            />
-          )}
-        </div>
-      ))}
-
-      <div ref={bottomRef} />
-    </>
-  )}
-</div>
-
-          {/* Input bar */}
-<div
-  style={{
-    padding: isEmptyChat
-      ? '0 24px 80px'
-      : '14px 24px',
-    borderTop: isEmptyChat
-      ? 'none'
-      : '1px solid var(--border-dim)',
-    width: isEmptyChat ? '900px' : '100%',
-    maxWidth: isEmptyChat ? '900px' : 'unset',
-    alignSelf: 'center',
-  }}
->
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              border: '1px solid var(--border-mid)',
-              background: 'var(--bg-input)',
-              padding: '0 14px',
-            }}>
-              <span style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ verticalAlign: 'middle', marginRight: 4 }}>
-                  <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  style={{ verticalAlign: "middle", marginRight: 4 }}
+                >
+                  <polyline points="4 17 10 11 4 5" />
+                  <line x1="12" y1="19" x2="20" y2="19" />
                 </svg>
                 QUERY_SYSTEM &gt;
               </span>
               <input
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 placeholder="Type your command or search query..."
                 style={{
-                  flex: 1, background: 'none', border: 'none',
-                  color: 'var(--text-primary)', fontFamily: 'var(--font-mono)',
-                  fontSize: 12, padding: '13px 0', outline: 'none',
-                  letterSpacing: '0.04em',
+                  flex: 1,
+                  background: "none",
+                  border: "none",
+                  color: "var(--text-primary)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  padding: "13px 0",
+                  outline: "none",
+                  letterSpacing: "0.04em",
                 }}
               />
-              <button onClick={handleSend} style={{
-                background: 'none', border: 'none',
-                color: input.trim() ? 'var(--accent-blue)' : 'var(--text-muted)',
-                cursor: 'pointer', padding: '6px', display: 'flex',
-                transition: 'color 0.2s',
-              }}>
+              <button
+                onClick={handleSend}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: input.trim()
+                    ? "var(--accent-blue)"
+                    : "var(--text-muted)",
+                  cursor: "pointer",
+                  padding: "6px",
+                  display: "flex",
+                  transition: "color 0.2s",
+                }}
+              >
                 <SendIcon />
               </button>
             </div>
           </div>
         </div>
       </div>
-      <ContextModal message={selectedMessage} onClose={() => setSelectedMessage(null)} />
+      <ContextModal
+        message={selectedMessage}
+        onClose={() => setSelectedMessage(null)}
+      />
     </div>
   );
 }

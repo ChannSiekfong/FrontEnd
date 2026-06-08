@@ -103,13 +103,12 @@ export default function Navbar({ showSidebar = false }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,
-
                 background: isActive
-                  ? 'rgba(59,130,246,0.15)'
+                  ? '#1f2433'
                   : 'transparent',
 
                 border: isActive
-                  ? '1px solid rgba(59,130,246,0.3)'
+                  ? '2px solid #2d354d'
                   : '1px solid transparent',
 
                 color: isActive

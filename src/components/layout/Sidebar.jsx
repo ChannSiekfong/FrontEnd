@@ -1,31 +1,30 @@
 // src/components/layout/Sidebar.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useChat } from '../../hook/chat.hook';
-import { useEffect, useState } from 'react'; // Added useState
+import { useEffect, useState } from 'react';
 import { useLogout } from '../../hook/authentication.hook';
-// i want 20 mock chats for testing the UI, each with id, title, and created_at
-const mock_chats = [
-  { id: '1', title: 'Chat about React', created_at: '2024-01-01' },
-  { id: '2', title: 'Chat about Node.js', created_at: '2024-02-15' },
-  { id: '3', title: 'Chat about AI', created_at: '2024-03-10' },
-  { id: '4', title: 'Chat about Databases', created_at: '2024-04-05' },
-  { id: '5', title: 'Chat about DevOps', created_at: '2024-05-20' },
-  { id: '6', title: 'Chat about Cloud Computing', created_at: '2024-06-18' },
-  { id: '7', title: 'Chat about Cybersecurity', created_at: '2024-07-22' },
-  { id: '8', title: 'Chat about Mobile Development', created_at: '2024-08-30' },
-  { id: '9', title: 'Chat about Game Development', created_at: '2024-09-12' },
-  { id: '10', title: 'Chat about Data Science', created_at: '2024-10-01' },
-  { id: '11', title: 'Chat about Machine Learning', created_at: '2024-11-15' },
-  { id: '12', title: 'Chat about Deep Learning', created_at: '2024-12-05' },
-  { id: '13', title: 'Chat about Natural Language Processing', created_at: '2025-01-20' },
-  { id: '14', title: 'Chat about Computer Vision', created_at: '2025-02-28' },
-  { id: '15', title: 'Chat about Robotics', created_at: '2025-03-18' },
-  { id: '16', title: 'Chat about Internet of Things', created_at: '2025-04-10' },
-  { id: '17', title: 'Chat about Blockchain', created_at: '2025-05-25' },
-  { id: '18', title: 'Chat about Quantum Computing', created_at: '2025-06-30' },
-  { id: '19', title: 'Chat about Virtual Reality', created_at: '2025-07-15' },
-  { id: '20', title: 'Chat about Augmented Reality', created_at: '2025-08-05' },
-];
+
+// Helper icons matching the mock reference UI
+const MessageIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>
+);
+
+const FileIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+  </svg>
+);
+
+const SystemIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+);
 
 const SecurityIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -41,15 +40,38 @@ const LogoutIcon = () => (
   </svg>
 );
 
+// Helper function to group items by "Today", "Yesterday", or "Previous"
+const groupChatsByDate = (chatsList) => {
+  const groups = { TODAY: [], YESTERDAY: [], PREVIOUS: [] };
+  const todayStr = new Date().toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+
+  chatsList.forEach((chat) => {
+    if (!chat.created_at) {
+      groups.TODAY.push(chat);
+      return;
+    }
+    const chatDateStr = new Date(chat.created_at).toDateString();
+    if (chatDateStr === todayStr) {
+      groups.TODAY.push(chat);
+    } else if (chatDateStr === yesterdayStr) {
+      groups.YESTERDAY.push(chat);
+    } else {
+      groups.PREVIOUS.push(chat);
+    }
+  });
+  return groups;
+};
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // 1. Create a state variable to hold the chats array
   const [chats, setChats] = useState([]);
-
   const { logoutUser } = useLogout();
-
+  const searchParams = new URLSearchParams(location.search);
+  const activeChatId = searchParams.get('chatId');
   const handleLogout = async () => {
     await logoutUser();
   };
@@ -59,7 +81,6 @@ export default function Sidebar() {
 
   const handleCreateChat = async (profileId) => {
     const newChat = await create_chat(profileId);
-    // refetch chats after creating a new one
     const response = await fetch_chats(profileId);
     if (response && response.data) {
       setChats(response.data);
@@ -67,17 +88,11 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    if (!currentProfileId) {
-      console.log("No profileId found");
-      return;
-    }
+    if (!currentProfileId) return;
 
     const loadChats = async () => {
       try {
         const response = await fetch_chats(currentProfileId);
-        console.log("Chats loaded:", response);
-
-        // 2. Safely capture the data array matching your payload structure
         if (response && response.data) {
           setChats(response.data);
         }
@@ -89,164 +104,188 @@ export default function Sidebar() {
     loadChats();
   }, [currentProfileId]);
 
+  // Grouping the chats dynamically
+  const groupedChats = groupChatsByDate(chats);
+
+  // Fallback metadata tags and icons to resemble the specific types in your UI mockup
+  const getMockMeta = (index) => {
+    const metas = [
+      { tag: "WORKSPACE", icon: <MessageIcon /> },
+      { tag: "ENCRYPTED", icon: <FileIcon /> },
+      { tag: "SYSTEM", icon: <SystemIcon /> }
+    ];
+    return metas[index % metas.length];
+  };
+
   return (
-<aside
-  style={{
-    position: "fixed",
-    left: 0,
-    top: 70,
-    height: "calc(100vh - 70px)",
-    width: 200,
+    <aside
+      style={{
+        position: "fixed",
+        left: 0,
+        top: 70,
+        height: "calc(100vh - 70px)",
+        width: 220, // Expanded slightly for better text scaling
+        background: "#0c0d12", // Pure deep cyber-palette background
+        borderRight: "1px solid #1b1d26",
+        display: "flex",
+        flexDirection: "column",
+        padding: "16px 0",
+        overflow: "hidden",
+        zIndex: 50,
+        fontFamily: "var(--font-mono), monospace",
+      }}
+    >
+      {/* NEW_SEARCH Button Container with Cyber double-border styling */}
+      <div style={{ padding: "0 12px", marginBottom: 20 }}>
+        <div style={{ border: "1px solid #1f2330", padding: 2 }}>
+          <button
+            onClick={() => handleCreateChat(currentProfileId)}
+            style={{
+              width: "100%",
+              padding: "10px 0",
+              background: "#161922",
+              border: "1px solid #2d3247",
+              color: "#8ba2cb",
+              fontFamily: "inherit",
+              fontSize: 11,
+              fontWeight: "600",
+              letterSpacing: "0.2em",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "6px"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#1f2433";
+              e.currentTarget.style.color = "#ffffff";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#161922";
+              e.currentTarget.style.color = "#8ba2cb";
+            }}
+          >
+            <span>+</span> NEW_SEARCH
+          </button>
+        </div>
+      </div>
 
-    background: "var(--bg-sidebar)",
-    borderRight: "1px solid var(--border-dim)",
-
-    display: "flex",
-    flexDirection: "column",
-
-    padding: "12px 0",
-
-    overflow: "hidden",
-    zIndex: 50,
-  }}
->
-      <button
-        onClick={() => {
-          handleCreateChat(currentProfileId);
-        }}
+      {/* Rendered Chats List Section */}
+      <div
         style={{
-          width: "100%",
-          padding: "11px 14px",
-          background: "rgba(168,85,247,0.15)",
-          border: "1px solid rgba(168,85,247,0.3)",
-          color: "#c084fc",
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          letterSpacing: "0.16em",
-          cursor: "pointer",
-          marginBottom: 12,
-          transition: "all 0.2s",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: "0 12px",
+          overflowY: "auto",
+          overflowX: "hidden",
         }}
       >
-        NEW_SEARCH
-      </button>
-
-      <hr style={{ border: "none", borderTop: "1px solid var(--border-dim)", margin: "12px 0" }} />
-
-      {/* 3. Rendered Chats List Section */}
-<div
-  style={{
-    flex: 1,
-
-    display: "flex",
-    flexDirection: "column",
-
-    gap: 8,
-    padding: "0 8px",
-
-    overflowY: "auto",
-    overflowX: "hidden",
-  }}
->
-        {chats.map((chat) => {
-          const isActive = location.pathname.includes(chat.id);
+        {Object.entries(groupedChats).map(([timeGroup, items]) => {
+          if (items.length === 0) return null;
 
           return (
-            <button
-              key={chat.id}
-              onClick={() => navigate(`/dashboard/omni-search?profileId=${currentProfileId}&chatId=${chat.id}`)}
-              style={{
-                minHeight: 64,
-                width: "100%",
-                textAlign: "left",
-                padding: "10px 12px",
-                marginBottom: 8,
-                borderRadius: 10,
-                border: isActive
-                  ? "1px solid rgba(168,85,247,0.6)"
-                  : "1px solid rgba(255,255,255,0.06)",
-                background: isActive
-                  ? "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(59,130,246,0.08))"
-                  : "rgba(255,255,255,0.03)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                boxShadow: isActive
-                  ? "0 8px 25px rgba(168,85,247,0.15)"
-                  : "0 2px 10px rgba(0,0,0,0.15)",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                position: "relative",
-                overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.transform = "translateY(-2px)";
-                  e.currentTarget.style.background =
-                    "rgba(255,255,255,0.06)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.transform = "translateY(0px)";
-                  e.currentTarget.style.background =
-                    "rgba(255,255,255,0.03)";
-                }
-              }}
-            >
-              {/* Left accent bar */}
+            <div key={timeGroup} style={{ marginBottom: 24 }}>
+              {/* Category Heading Text */}
               <div
                 style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 3,
-                  background: isActive
-                    ? "linear-gradient(to bottom, #a855f7, #3b82f6)"
-                    : "transparent",
-                }}
-              />
-
-              {/* Title */}
-              <div
-                style={{
-                  fontSize: 13,
-                  fontFamily: "var(--font-sans, inherit)",
-                  color: isActive ? "#ffffff" : "rgba(255,255,255,0.75)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  marginBottom: 4,
-                }}
-              >
-                {chat.title || "Untitled Chat"}
-              </div>
-
-              {/* Meta row */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
                   fontSize: 10,
-                  fontFamily: "var(--font-mono)",
-                  color: "rgba(255,255,255,0.35)",
-                  letterSpacing: "0.08em",
+                  fontWeight: "bold",
+                  color: "#383d52",
+                  letterSpacing: "0.15em",
+                  marginBottom: 12,
+                  paddingLeft: 4
                 }}
               >
-                <span>CHAT</span>
-                <span>
-                  {chat.created_at
-                    ? new Date(chat.created_at).toLocaleDateString()
-                    : ""}
-                </span>
+                {timeGroup}
               </div>
-            </button>
+
+              {/* Chat Cards List */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {items.map((chat, idx) => {
+                  const isActive = activeChatId === chat.id;
+                  const meta = getMockMeta(idx);
+
+                  // Format time to matches HH:MM:SS format seen in your picture
+                  const timeString = chat.created_at
+                    ? new Date(chat.created_at).toTimeString().split(' ')[0]
+                    : "00:00:00";
+
+                  return (
+                    <button
+                      key={chat.id}
+                      onClick={() =>
+                        navigate(`/dashboard/omni-search?profileId=${currentProfileId}&chatId=${chat.id}`)
+                      }
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        padding: isActive ? "12px" : "6px 12px",
+                        background: isActive ? "#1f2433" : "transparent",
+                        border: isActive ? "2px solid #2d354d" : "1px solid transparent",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        outline: "none",
+                        boxSizing: "border-box"
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) e.currentTarget.style.border = "1px solid #1a1e29";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) e.currentTarget.style.border = "1px solid transparent";
+                      }}
+                    >
+                      {/* Top Row: Icon + Title */}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginBottom: 6,
+                          color: isActive ? "#ffffff" : "#a3a9be",
+                        }}
+                      >
+                        {meta.icon}
+                        <div
+                          style={{
+                            fontSize: 12,
+                            fontWeight: isActive ? "600" : "400",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            flex: 1
+                          }}
+                        >
+                          {chat.title || "Untitled chat"}
+                        </div>
+                      </div>
+
+                      {/* Subtitle Row: Timestamp // Scope Tag */}
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#4e556e",
+                          letterSpacing: "0.05em",
+                          display: "flex",
+                          alignItems: "center",
+                          paddingLeft: 18 // Indents with title icon
+                        }}
+                      >
+                        <span>{timeString}</span>
+                        <span style={{ margin: "0 6px", color: "#2d3247" }}>//</span>
+                        <span style={{ color: isActive ? "#637399" : "#4e556e" }}>{meta.tag}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </div>
 
-      <div style={{ padding: "0 8px" }}>
+      {/* Sidebar Footer Operations */}
+      <div style={{ padding: "0 12px", borderTop: "1px solid #161922", paddingTop: 12 }}>
         <button
           style={{
             width: "100%",
@@ -256,12 +295,13 @@ export default function Sidebar() {
             padding: "8px 12px",
             background: "none",
             border: "none",
-            color: "var(--text-dim)",
-            fontFamily: "var(--font-mono)",
+            color: "#4e556e",
+            fontFamily: "inherit",
             fontSize: 11,
             cursor: "pointer",
             letterSpacing: "0.08em",
             marginBottom: 4,
+            textAlign: "left"
           }}
         >
           <SecurityIcon />
@@ -269,9 +309,7 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => {
-            handleLogout();
-          }}
+          onClick={handleLogout}
           style={{
             width: "100%",
             display: "flex",
@@ -280,11 +318,12 @@ export default function Sidebar() {
             padding: "8px 12px",
             background: "none",
             border: "none",
-            color: "var(--text-dim)",
-            fontFamily: "var(--font-mono)",
+            color: "#4e556e",
+            fontFamily: "inherit",
             fontSize: 11,
             cursor: "pointer",
             letterSpacing: "0.08em",
+            textAlign: "left"
           }}
         >
           <LogoutIcon />

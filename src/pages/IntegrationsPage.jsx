@@ -1,63 +1,19 @@
 // src/pages/IntegrationsPage.jsx
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useIntegration } from '../hook/integration.hook';
 import { useCommunication } from '../hook/communication.hook';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
-import StatusBar from '../components/ui/StatusBar';
 import gmail from "../../asset/gmail.png";
 import telegram from "../../asset/telegram.png";
 
-const MailIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4a9eff" strokeWidth="1.5">
-    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-    <polyline points="22,6 12,13 2,6"/>
+// Cyberpunk-themed inline system micro-icons
+const ChevronRightIcon = () => (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="9 18 15 12 9 6" />
   </svg>
 );
-
-const TelegramIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="10" stroke="#a855f7" strokeWidth="1.5"/>
-    <path d="M8 12l2 2 4-4" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round"/>
-    <path d="M6 12l4 4 8-8" stroke="#a855f7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const SyncIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-  </svg>
-);
-
-const LinkIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-  </svg>
-);
-
-const DBIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4a9eff" strokeWidth="1.2">
-    <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-  </svg>
-);
-
-const ShieldIcon2 = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="1.2">
-    <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z"/>
-  </svg>
-);
-
-const DiamondIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8a04a" strokeWidth="1.2">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-  </svg>
-);
-
-// src/pages/IntegrationsPage.jsx
 
 function IntegrationCard({
   type,
@@ -83,360 +39,372 @@ function IntegrationCard({
     return "NOT_INTEGRATED";
   }, [hasRefreshToken, isSyncing, isActiveFlag, isDisconnectedFlag]);
 
+  // Use crisp HH:MM:SS format matching the sidebar logs
   const lastSync = integration?.lastSyncedAt
-    ? new Date(integration.lastSyncedAt).toLocaleString()
+    ? new Date(integration.lastSyncedAt).toTimeString().split(' ')[0]
+    : null;
+
+  const dateSync = integration?.lastSyncedAt
+    ? new Date(integration.lastSyncedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
     : null;
 
   const theme = {
-    ACTIVE: { color: "#22c55e", bg: "rgba(34,197,94,.12)", label: "Connected" },
-    SYNCING: { color: "#60a5fa", bg: "rgba(96,165,250,.12)", label: "Syncing" },
-    DISCONNECTED: { color: "#f59e0b", bg: "rgba(245,158,11,.12)", label: "Disconnected" },
-    NOT_INTEGRATED: { color: "#a1a1aa", bg: "rgba(255,255,255,.06)", label: "Not connected" },
+    ACTIVE: { color: "#4ade80", bg: "rgba(74,222,128,0.03)", border: "#22c55e", label: "ONLINE" },
+    SYNCING: { color: "#60a5fa", bg: "rgba(96,165,250,0.03)", border: "#3b82f6", label: "SYNCING" },
+    DISCONNECTED: { color: "#f87171", bg: "rgba(248,113,113,0.03)", border: "#ef4444", label: "OFFLINE" },
+    NOT_INTEGRATED: { color: "#4e556e", bg: "transparent", border: "#1f2330", label: "STANDBY" },
   };
 
   const s = theme[status];
 
   return (
-    <div style={{ ...styles.card, borderColor: `${s.color}33` }}>
-      {/* HEADER */}
-      <div style={styles.cardHeader}>
-        <div style={styles.left}>
-          <div style={styles.icon}>{icon}</div>
-          <div>
-            <div style={styles.title}>{name}</div>
-            <div style={styles.sub}>
-              {status === "ACTIVE" && "Running smoothly"}
-              {status === "SYNCING" && "Updating data"}
-              {status === "DISCONNECTED" && "Needs reconnection"}
-              {status === "NOT_INTEGRATED" && "Not connected yet"}
+    <div style={{ ...styles.cardOuter, borderColor: status === "NOT_INTEGRATED" ? "#1c202e" : `${s.border}44` }}>
+      <div style={{ ...styles.cardInner, background: s.bg }}>
+
+        {/* HEADER SECTION */}
+        <div style={styles.cardHeader}>
+          <div style={styles.left}>
+            <div style={styles.iconContainer}>{icon}</div>
+            <div>
+              <div style={styles.title}>{name.toUpperCase()}</div>
+              <div style={{ ...styles.sub, color: s.color }}>
+                {status === "ACTIVE" && "// LINK STABLE"}
+                {status === "SYNCING" && "// DOWNLOADING DATA"}
+                {status === "DISCONNECTED" && "// CRITICAL BREAK"}
+                {status === "NOT_INTEGRATED" && "// LINK AVAILABLE"}
+              </div>
             </div>
+          </div>
+
+          {/* Terminal Matrix-style status badge */}
+          <div style={{ ...styles.badge, color: s.color, border: `1px solid ${s.color}22` }}>
+            <span style={{ inlineSize: 5, height: 5, borderRadius: "50%", background: s.color, display: "inline-block" }} />
+            {s.label}
           </div>
         </div>
 
-        <div style={{ ...styles.badge, background: s.bg, color: s.color }}>
-          ● {s.label}
-        </div>
-      </div>
+        {/* METRICS / DATA CONTAINER */}
+        <div style={styles.body}>
+          {(status === "ACTIVE" || status === "SYNCING") && (
+            <div style={styles.metaContainer}>
+              <Row label="REF_ID" value={(integration?.id || id || "UNKNOWN").slice(0, 12).toUpperCase()} isMono />
+              <Row label="LAST_LOG" value={lastSync ? `${dateSync} @ ${lastSync}` : "N/A"} />
+              <Row label="ENCRYPTION" value="AES_256_GCM" />
+            </div>
+          )}
 
-      {/* BODY */}
-      <div style={styles.body}>
-        {(status === "ACTIVE" || status === "SYNCING") && (
-          <div style={styles.meta}>
+          {status === "DISCONNECTED" && (
+            <div style={styles.warnBox}>
+              <span style={{ color: "#ef4444", fontWeight: "bold" }}>[ERROR]</span> Handshake credentials expired or revoked.
+            </div>
+          )}
+
+          {status === "NOT_INTEGRATED" && (
+            <div style={styles.emptyBox}>
+              Pipeline dormant. Link this account to index files and ingest continuous background workspace metrics.
+            </div>
+          )}
+
+          {/* INTERACTIVE ACTIONS PANEL */}
+          <div style={styles.actions}>
             {status === "ACTIVE" && (
               <>
-                <Row label="Last sync" value={lastSync || "Never"} />
-                <Row label="ID" value={integration?.id || id} mono />
+                <button
+                  onClick={() => onSync?.(integration?.id)}
+                  style={styles.syncBtn}
+                >
+                  RUN_SYNC
+                </button>
+                <button
+                  onClick={onDisconnect}
+                  style={styles.dangerBtn}
+                >
+                  DISCONNECT
+                </button>
               </>
             )}
 
             {status === "SYNCING" && (
-              <div style={styles.syncBox}>Syncing in progress…</div>
+              <button disabled style={styles.disabledBtn}>
+                EXTRACTING_DATA...
+              </button>
+            )}
+
+            {status === "DISCONNECTED" && (
+              <button
+                onClick={onReconnect}
+                style={styles.warnBtn}
+              >
+                REESTABLISH_LINK <ChevronRightIcon />
+              </button>
+            )}
+
+            {status === "NOT_INTEGRATED" && (
+              <button
+                onClick={() => onIntegrate?.(type)}
+                style={styles.connectBtn}
+              >
+                INITIALIZE_LINK <ChevronRightIcon />
+              </button>
             )}
           </div>
-        )}
-
-        {status === "DISCONNECTED" && (
-          <div style={styles.warn}>Connection lost. Please reconnect.</div>
-        )}
-
-        {status === "NOT_INTEGRATED" && (
-          <div style={styles.empty}>
-            <div style={{ fontWeight: 700 }}>Connect {name}</div>
-            <div style={{ fontSize: 12, opacity: 0.6 }}>
-              Enable automation in one click
-            </div>
-          </div>
-        )}
-
-        {/* ACTIONS */}
-        <div style={styles.actions}>
-          {status === "ACTIVE" && (
-            <>
-              <button
-                onClick={() => onSync?.(integration?.id)}
-                style={styles.syncBtn}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-              >
-                Sync
-              </button>
-              <button
-                onClick={onDisconnect}
-                style={styles.dangerBtn}
-                onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
-                onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-              >
-                Disconnect
-              </button>
-            </>
-          )}
-
-          {status === "SYNCING" && (
-            <button disabled style={styles.disabled}>Syncing…</button>
-          )}
-
-          {status === "DISCONNECTED" && (
-            <button
-              onClick={onReconnect}
-              style={styles.warnBtn}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-            >
-              Reconnect
-            </button>
-          )}
-
-          {status === "NOT_INTEGRATED" && (
-            <button
-              onClick={() => onIntegrate?.(type)}
-              style={styles.connectBtn}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = "0.85"}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
-            >
-              Connect {name}
-            </button>
-          )}
         </div>
+
       </div>
     </div>
   );
 }
 
-function Row({ label, value, mono }) {
+function Row({ label, value, isMono }) {
   return (
     <div style={styles.row}>
       <span style={styles.label}>{label}</span>
-      <span style={{ ...styles.value, fontFamily: mono ? "monospace" : "" }}>
+      <span style={{ ...styles.value, fontFamily: isMono ? "monospace" : "inherit" }}>
         {value}
       </span>
     </div>
   );
 }
 
-
-/* ─────────────────────────────
-    STYLES (UPDATED LAYOUT)
-───────────────────────────── */
-
+/* ──────────────────────────────────────────────────────────────
+   STYLES: SYSTEM SPECIFICATION PALETTE
+────────────────────────────────────────────────────────────── */
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "#070a0f",
+    background: "#0c0d12", // Matched theme background
     color: "#fff",
+    fontFamily: "var(--font-mono), monospace",
   },
 
   shell: {
     display: "flex",
-    minHeight: "calc(100vh - 64px)", // navbar fix
+    minHeight: "calc(100vh - 70px)",
   },
 
   main: {
     flex: 1,
-    padding: 32,
+    padding: "40px 48px",
+    boxSizing: "border-box",
   },
 
   pageTitle: {
-    fontSize: 20,
-    fontWeight: 700,
-    marginBottom: 20,
+    fontSize: 16,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: "0.25em",
+    color: "#ffffff",
+    marginBottom: 4,
+  },
+
+  pageSubtitle: {
+    fontSize: 11,
+    color: "#4e556e",
+    letterSpacing: "0.05em",
+    marginBottom: 32,
   },
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 20,
+    gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", // Adaptive layout grid
+    gap: 24,
   },
 
-  /* CARD - Unchanging, static layout container */
-  card: {
-    borderRadius: 18,
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    padding: 16,
-    transition: "border-color 0.2s ease", // only color shifts smoothly if status changes
+  /* GEOMETRIC CYBER CARD CONTAINER */
+  cardOuter: {
+    background: "#0f111a",
+    border: "1px solid #1f2330",
+    padding: 2,
+    transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+  },
+
+  cardInner: {
+    padding: "20px 18px",
+    background: "transparent",
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    boxSizing: "border-box",
   },
 
   cardHeader: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center", // Vertically centers header items together
-    marginBottom: 14,
+    alignItems: "flex-start",
+    marginBottom: 20,
   },
 
   left: {
     display: "flex",
-    gap: 12,
+    gap: 14,
     alignItems: "center",
   },
 
-  icon: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.06)",
+  iconContainer: {
+    width: 44,
+    height: 44,
+    background: "#141722",
+    border: "1px solid #222635",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  title: { fontSize: 15, fontWeight: 700 },
+  title: {
+    fontSize: 14,
+    fontWeight: "700",
+    letterSpacing: "0.08em",
+    color: "#ffffff"
+  },
 
-  sub: { fontSize: 12, opacity: 0.6 },
+  sub: {
+    fontSize: 10,
+    fontWeight: "600",
+    letterSpacing: "0.05em",
+    marginTop: 3
+  },
 
   badge: {
-    fontSize: 12,
-    padding: "6px 12px",
-    borderRadius: 999,
-    fontWeight: 600,
+    fontSize: 9,
+    padding: "4px 8px",
+    background: "#0c0d12",
+    fontWeight: "700",
+    letterSpacing: "0.1em",
     display: "inline-flex",
     alignItems: "center",
-    justifyContent: "center",
     gap: 6,
-    height: "fit-content",
   },
 
   body: {
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    flex: 1,
+    justifyContent: "space-between",
   },
 
-  meta: {
+  metaContainer: {
     display: "flex",
     flexDirection: "column",
-    gap: 6,
+    gap: 8,
+    background: "#08090d",
+    padding: "12px 14px",
+    border: "1px solid #151821",
+    marginBottom: 20,
   },
 
   row: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    fontSize: 13,
+    fontSize: 11,
+    letterSpacing: "0.02em"
   },
 
-  label: { opacity: 0.5 },
+  label: { color: "#4e556e", fontWeight: "600" },
 
-  value: { color: "#fff" },
+  value: { color: "#a3a9be" },
 
-  syncBox: {
-    padding: 10,
-    borderRadius: 10,
-    background: "rgba(96,165,250,0.08)",
-    fontSize: 13,
-    display: "flex",
-    alignItems: "center",
+  warnBox: {
+    padding: "12px 14px",
+    background: "rgba(239,68,68,0.02)",
+    border: "1px solid rgba(239,68,68,0.15)",
+    fontSize: 11,
+    color: "#a3a9be",
+    lineHeight: "1.5",
+    marginBottom: 20,
   },
 
-  warn: {
-    padding: 10,
-    borderRadius: 10,
-    background: "rgba(245,158,11,0.08)",
-    fontSize: 13,
-    display: "flex",
-    alignItems: "center",
-  },
-
-  empty: {
-    padding: "4px 10px",
-    opacity: 0.8,
+  emptyBox: {
+    fontSize: 11,
+    color: "#4e556e",
+    lineHeight: "1.6",
+    marginBottom: 26,
+    padding: "0 4px"
   },
 
   actions: {
     display: "flex",
-    gap: 10,
-    marginTop: 6,
+    gap: 12,
   },
 
-  /* BUTTON INTERACTIVITY CONFIGURATION */
+  /* TACTICAL FLAT ACTION BUTTONS */
   connectBtn: {
     flex: 1,
-    height: 40,
-    borderRadius: 12,
-    border: "none",
-    background: "#7c3aed",
-    color: "#fff",
-    fontWeight: 600,
+    height: 38,
+    background: "#161922",
+    border: "1px solid #2d3247",
+    color: "#8ba2cb",
+    fontFamily: "inherit",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: "0.1em",
     cursor: "pointer",
-    transition: "opacity 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    transition: "all 0.15s ease",
   },
 
-  /* Matched to the Green Active Theme */
   syncBtn: {
     flex: 1,
-    height: 40,
-    borderRadius: 12,
-    background: "rgba(34, 197, 94, 0.15)",
-    border: "1px solid rgba(34, 197, 94, 0.3)",
+    height: 38,
+    background: "rgba(34, 197, 94, 0.04)",
+    border: "1px solid #22c55e",
     color: "#4ade80",
-    fontWeight: 600,
+    fontFamily: "inherit",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: "0.1em",
     cursor: "pointer",
-    transition: "opacity 0.2s ease",
+    transition: "all 0.15s ease",
   },
 
   dangerBtn: {
-    flex: 1,
-    height: 40,
-    borderRadius: 12,
-    background: "rgba(239,68,68,0.08)",
-    border: "1px solid rgba(239,68,68,0.3)",
-    color: "#f87171",
-    fontWeight: 600,
+    width: 110,
+    height: 38,
+    background: "transparent",
+    border: "1px solid #383d52",
+    color: "#888ea0",
+    fontFamily: "inherit",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: "0.1em",
     cursor: "pointer",
-    transition: "opacity 0.2s ease",
+    transition: "all 0.15s ease",
   },
 
   warnBtn: {
-    width: "100%",
-    height: 40,
-    borderRadius: 12,
-    background: "rgba(245,158,11,0.1)",
-    border: "1px solid rgba(245,158,11,0.3)",
-    color: "#fbbf24",
-    fontWeight: 600,
+    flex: 1,
+    height: 38,
+    background: "rgba(239,68,68,0.04)",
+    border: "1px solid #ef4444",
+    color: "#f87171",
+    fontFamily: "inherit",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: "0.1em",
     cursor: "pointer",
-    transition: "opacity 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    transition: "all 0.15s ease",
   },
 
-  disabled: {
-    width: "100%",
-    height: 40,
-    borderRadius: 12,
-    background: "rgba(255,255,255,0.06)",
-    border: "none",
-    color: "rgba(255,255,255,0.4)",
+  disabledBtn: {
+    flex: 1,
+    height: 38,
+    background: "#0f111a",
+    border: "1px solid #1f2330",
+    color: "#4e556e",
+    fontFamily: "inherit",
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: "0.1em",
     cursor: "not-allowed",
   },
 };
-
-
-function FeatureCard({ icon, title, desc, gradient }) {
-  return (
-    <div style={{
-      background: 'var(--bg-card)',
-      border: '1px solid var(--border-dim)',
-      overflow: 'hidden',
-      cursor: 'default',
-      transition: 'border-color 0.2s',
-    }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--border-bright)'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-dim)'}
-    >
-      <div style={{
-        height: 80,
-        background: gradient,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {icon}
-      </div>
-      <div style={{ padding: '14px 16px' }}>
-        <p style={{ fontSize: 9, letterSpacing: '0.18em', color: 'var(--text-secondary)', marginBottom: 6 }}>
-          {title}
-        </p>
-        <p style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>{desc}</p>
-      </div>
-    </div>
-  );
-}
 
 export default function IntegrationsPage() {
   const location = useLocation();
@@ -450,7 +418,6 @@ export default function IntegrationsPage() {
   } = useIntegration();
 
   const { sync } = useCommunication();
-
   const [integrations, setIntegrations] = useState([]);
 
   const refresh = async () => {
@@ -490,20 +457,24 @@ export default function IntegrationsPage() {
 
   const getIntegration = (type) => map.get(type);
 
-const list = [
-  { name: "Gmail", type: "GMAIL", icon: <img src={gmail} alt="Gmail" style={{ width: 22, height: 22 }} /> },
-  { name: "Telegram", type: "TELEGRAM", icon: <img src={telegram} alt="Telegram" style={{ width: 22, height: 22 }} /> },
-];
+  const list = [
+    { name: "Gmail", type: "GMAIL", icon: <img src={gmail} alt="Gmail" style={{ width: 18, height: 18 }} /> },
+    { name: "Telegram", type: "TELEGRAM", icon: <img src={telegram} alt="Telegram" style={{ width: 18, height: 18 }} /> },
+  ];
 
   return (
     <div style={styles.page}>
+      <div style={{ fontSize: 10, color: '#3d4357', letterSpacing: '0.15em', padding: '6px 24px', background: '#08090d', borderBottom: '1px solid #171921', fontWeight: 'bold' }}>
+        SYSTEM_PARAMETERS // EXTERNAL_PIPELINES
+      </div>
       <Navbar showSidebar />
 
       <div style={styles.shell}>
         <Sidebar />
 
-        <main style={{marginLeft: 200, flex: 1, padding: 32 }}>
-          <h1 style={styles.pageTitle}>Integrations</h1>
+        <main style={{ marginLeft: 260, ...styles.main }}>
+          <h1 style={styles.pageTitle}>Data Integrations</h1>
+          <div style={styles.pageSubtitle}>Index external communication data pipelines into unified search indexes.</div>
 
           <div style={styles.grid}>
             {list.map((item) => (
