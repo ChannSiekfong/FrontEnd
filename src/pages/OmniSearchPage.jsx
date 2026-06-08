@@ -41,9 +41,10 @@ function UserMessage({ msg }) {
   );
 }
 
-function AiMessage({ msg }) {
+function AiMessage({ msg, onClick }) {
   return (
-    <div style={{ marginBottom: 8 }}>
+    <div
+    style={{ marginBottom: 8}}>
       {/* AI header */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -115,15 +116,272 @@ function AiMessage({ msg }) {
         )}
       </div>
 
-      {msg.analysisTime && (
-        <div style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', marginTop: 6 }}>
-          ANALYSIS_COMPLETE // {msg.analysisTime}
-        </div>
-      )}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '6px 14px',
+        background: 'var(--bg-input)',
+        borderBottom: '1px solid var(--border-mid)',
+        borderLeft: '1px solid var(--border-mid)',
+        borderRight: '1px solid var(--border-mid)',
+        borderRadius: '0 0 6px 6px',
+      }}>
+        {msg.rawSources?.length > 0 && (
+          <div
+            style={{
+              marginTop: 6,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick?.();
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                cursor: 'pointer',
+                padding: '6px 10px',
+                borderRadius: 999,
+                border: '1px solid rgba(74,158,255,.25)',
+                background: 'rgba(74,158,255,.08)',
+                color: '#4a9eff',
+                fontSize: 10,
+                letterSpacing: '.08em',
+                transition: 'all .2s ease',
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: '#4a9eff',
+                }}
+              />
+
+              <span>
+                {msg.rawSources.length} VIEW SOURCES USED
+              </span>
+            </div>
+          </div>
+        )}
+
+        {msg.analysisTime && (
+          <div style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', marginTop: 6 }}>
+            ANALYSIS_COMPLETE // {msg.analysisTime}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
+function ContextModal({ message, onClose }) {
+  const [expandedSource, setExpandedSource] = useState(null);
+
+  if (!message) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,.65)',
+        backdropFilter: 'blur(0.4px)',
+        zIndex: 9999,
+        display: 'flex',
+        justifyContent: 'flex-end',
+      }}
+    >
+      {/* PANEL */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '520px',
+          height: '100vh',
+          background: 'var(--bg-card)',
+          borderLeft: '1px solid var(--border-mid)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* HEADER */}
+        <div
+          style={{
+            padding: '18px',
+            borderBottom: '1px solid var(--border-mid)',
+            position: 'relative',
+          }}
+        >
+          <div style={{ fontSize: 10, letterSpacing: '.14em', color: 'var(--text-dim)' }}>
+            RETRIEVED SOURCES
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 16,
+              fontWeight: 600,
+              color: 'var(--text-primary)',
+            }}
+          >
+            {message.rawSources?.length || 0} documents used
+          </div>
+
+          {/* CLOSE */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: 14,
+              right: 14,
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: 'transparent',
+              border: '1px solid var(--border-mid)',
+              color: 'var(--text-dim)',
+              cursor: 'pointer',
+              transition: 'all .15s ease',
+              fontSize: 16,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#ff4d4f';
+              e.currentTarget.style.borderColor = '#ff4d4f';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-dim)';
+              e.currentTarget.style.borderColor = 'var(--border-mid)';
+            }}
+          >
+            ×
+          </button>
+        </div>
+
+        {/* LIST */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: 14,
+          }}
+        >
+          {message.rawSources?.map((source, index) => {
+            const expanded = expandedSource === source.id;
+
+            return (
+              <div
+                key={source.id}
+                onClick={() =>
+                  setExpandedSource(expanded ? null : source.id)
+                }
+                style={{
+                  marginBottom: 18,
+                  padding: 14,
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  transition: 'transform .15s ease, border-color .15s ease',
+                  cursor: 'pointer',
+                }}
+              >
+                {/* TITLE */}
+                {/* i want title to be alot more bold  */}
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: 'var(--text-primary)',
+                    marginBottom: 6,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {source.subject || 'No subject'}
+                </div>
+
+                {/* META ROW */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: 11,
+                    color: 'var(--text-dim)',
+                    marginBottom: 10,
+                  }}
+                >
+                  <span>{source.sender}</span>
+                  <span style={{ textTransform: 'uppercase', opacity: 0.7 }}>
+                    {source.type}
+                  </span>
+                </div>
+
+                {/* CONTENT */}
+                <div
+                  style={{
+                    fontSize: 12,
+                    lineHeight: 1.6,
+                    color: 'var(--text-primary)',
+                    opacity: 0.9,
+                  }}
+                >
+                  {expanded
+                    ? source.content
+                    : source.content.slice(0, 140)}
+                </div>
+
+                {/* FOOTER */}
+                <div
+                  style={{
+                    marginTop: 12,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  {/* RELEVANCE (GREEN not too dark  but subtle) */}
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'var(--accent-green)',
+                      background: 'rgba(72,187,120,0.1)',
+                      padding: '2px 6px',
+                      borderRadius: 999,
+                      opacity: 0.9,
+                    }}
+                  >
+                    {(source.finalScore * 100).toFixed(1)}% relevant
+                  </div>
+
+                  {/* SHOW MORE (clean, not button-like) */}
+                  {source.content.length > 140 && (
+                    <div
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--text-dim)',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                      }}
+                    >
+                      {expanded ? 'Show less ↑' : 'Show more ↓'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function OmniSearchPage() {
   const { search } = useSearch();
@@ -132,6 +390,8 @@ export default function OmniSearchPage() {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef(null);
+
+  const [selectedMessage, setSelectedMessage] = useState(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -184,14 +444,14 @@ export default function OmniSearchPage() {
           ...msg,
           text: (msg.text || '') + event.content,
           status: "streaming",
-          statusText: "", // 👈 THIS removes "Building answer..."
+          statusText: "",
         }));
         break;
       case "status":
         updateAIMessage(aiId, msg => ({
           ...msg,
           status: event.stage,
-          statusText: event.message, // keep loading text separate
+          statusText: event.message,
         }));
         break;
       case "source":
@@ -204,7 +464,8 @@ export default function OmniSearchPage() {
         updateAIMessage(aiId, msg => ({
           ...msg,
           status: "done",
-          statusText: "", // clean up
+          statusText: "",
+          rawSources: event.sources || [],
           analysisTime: (
             (event.timings?.rag_time_ms || 0) / 1000
           ).toFixed(2) + 's',
@@ -253,7 +514,14 @@ export default function OmniSearchPage() {
                     </div>
                   </>
                 )}
-                {msg.type === 'ai' && <AiMessage msg={msg} />}
+                {msg.type === 'ai' &&
+                  <AiMessage msg={msg}
+                  onClick={() => {
+                    if(msg.rawSources?.length) {
+                      setSelectedMessage(msg);
+                    }
+                  }}
+                />}
               </div>
             ))}
             {typing && (
@@ -313,8 +581,8 @@ export default function OmniSearchPage() {
             </div>
           </div>
         </div>
-
       </div>
+      <ContextModal message={selectedMessage} onClose={() => setSelectedMessage(null)} />
     </div>
   );
 }
