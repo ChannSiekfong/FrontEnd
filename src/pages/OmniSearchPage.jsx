@@ -390,37 +390,38 @@ export default function OmniSearchPage() {
   const bottomRef = useRef(null);
 
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const isEmptyChat = messages.length === 0;
 
-useEffect(() => {
-  if (!chatId) return;
+  useEffect(() => {
+    if (!chatId) return;
 
-  fetch_conversation(chatId).then((response) => {
-    console.log(response);
+    fetch_conversation(chatId).then((response) => {
+      console.log(response);
 
-    const formatted = response.data.flatMap((conversation) => [
-      {
-        id: `${conversation.id}-user`,
-        type: "user",
-        text: conversation.query,
-      },
-      {
-        id: `${conversation.id}-ai`,
-        type: "ai",
-        text: conversation.response,
-        rawSources: conversation.results || [],
-        // sources: (conversation.results || []).map((src) => ({
-        //   service: src.type || "EMAIL",
-        //   dot: src.type === "EMAIL" ? "#4a9eff" : "#a855f7",
-        //   title: src.subject || "No Subject",
-        //   excerpt: (src.content || "").slice(0, 120),
-        // })),
-        status: "done",
-      },
-    ]);
+      const formatted = response.data.flatMap((conversation) => [
+        {
+          id: `${conversation.id}-user`,
+          type: "user",
+          text: conversation.query,
+        },
+        {
+          id: `${conversation.id}-ai`,
+          type: "ai",
+          text: conversation.response,
+          rawSources: conversation.results || [],
+          // sources: (conversation.results || []).map((src) => ({
+          //   service: src.type || "EMAIL",
+          //   dot: src.type === "EMAIL" ? "#4a9eff" : "#a855f7",
+          //   title: src.subject || "No Subject",
+          //   excerpt: (src.content || "").slice(0, 120),
+          // })),
+          status: "done",
+        },
+      ]);
 
-    setMessages(formatted);
-  });
-}, [chatId]);
+      setMessages(formatted);
+    });
+  }, [chatId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -546,51 +547,147 @@ useEffect(() => {
 
         {/* Main chat area */}
         <div style={{ flex: 1, display: 'flex', marginLeft: 200, flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 0' }}>
-            {/* User query timestamp */}
-            {messages.map((msg, i) => (
-              <div key={msg.id}>
-                {msg.type === 'user' && (
-                  <>
-                    <UserMessage msg={msg} />
-                    <div style={{ textAlign: 'right', fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)', marginBottom: 14 }}>
-                      USER_QUERY_SENT // {msg.time}
-                    </div>
-                  </>
-                )}
-                {msg.type === 'ai' &&
-                  <AiMessage msg={msg}
-                  onClick={() => {
-                    if(msg.rawSources?.length) {
-                      setSelectedMessage(msg);
-                    }
-                  }}
-                  dots={dots}
-                />}
-              </div>
-            ))}
-            {typing && (
-              <div style={{ border: '1px solid var(--border-mid)', background: 'var(--bg-card)', padding: '14px 16px', marginBottom: 8 }}>
-                <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                  {[0,1,2].map(i => (
-                    <span key={i} style={{
-                      width: 5, height: 5, borderRadius: '50%',
-                      background: 'var(--accent-blue)',
-                      animation: `blink 1.2s ${i * 0.2}s ease-in-out infinite`,
-                      display: 'inline-block',
-                    }} />
-                  ))}
-                  <span style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.14em', marginLeft: 8 }}>
-                    PROCESSING_QUERY...
-                  </span>
-                </div>
-              </div>
-            )}
-            <div ref={bottomRef} />
+<div
+  style={{
+    flex: 1,
+    overflowY: isEmptyChat ? 'hidden' : 'auto',
+    padding: isEmptyChat ? 0 : '24px 24px 0',
+  }}
+>
+  {isEmptyChat ? (
+    <div
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '0 40px',
+      }}
+    >
+      <div
+        style={{
+          textAlign: 'center',
+          marginBottom: 40,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 42,
+            fontWeight: 700,
+            color: 'var(--text-primary)',
+            marginBottom: 12,
+          }}
+        >
+          Context Buddy
+        </div>
+
+        <div
+          style={{
+            color: 'var(--text-dim)',
+            fontSize: 15,
+            maxWidth: 650,
+            lineHeight: 1.7,
+          }}
+        >
+          Search across your emails, notes, documents,
+          conversations and memories using AI-powered retrieval.
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 12,
+          width: '100%',
+          maxWidth: 760,
+        }}
+      >
+        {[
+          "Summarize recent emails",
+          "What projects am I working on?",
+          "Find conversations about AI",
+          "Show upcoming deadlines"
+        ].map((suggestion) => (
+          <div
+            key={suggestion}
+            onClick={() => setInput(suggestion)}
+            style={{
+              cursor: 'pointer',
+              padding: 16,
+              border: '1px solid var(--border-mid)',
+              background: 'var(--bg-card)',
+              borderRadius: 10,
+              transition: 'all .2s ease',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 13,
+                color: 'var(--text-primary)',
+              }}
+            >
+              {suggestion}
+            </div>
           </div>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <>
+      {messages.map((msg) => (
+        <div key={msg.id}>
+          {msg.type === 'user' && (
+            <>
+              <UserMessage msg={msg} />
+              <div
+                style={{
+                  textAlign: 'right',
+                  fontSize: 8,
+                  letterSpacing: '0.12em',
+                  color: 'var(--text-muted)',
+                  marginBottom: 14,
+                }}
+              >
+                USER_QUERY_SENT // {msg.time}
+              </div>
+            </>
+          )}
+
+          {msg.type === 'ai' && (
+            <AiMessage
+              msg={msg}
+              dots={dots}
+              onClick={() => {
+                if (msg.rawSources?.length) {
+                  setSelectedMessage(msg);
+                }
+              }}
+            />
+          )}
+        </div>
+      ))}
+
+      <div ref={bottomRef} />
+    </>
+  )}
+</div>
 
           {/* Input bar */}
-          <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border-dim)' }}>
+<div
+  style={{
+    padding: isEmptyChat
+      ? '0 24px 80px'
+      : '14px 24px',
+    borderTop: isEmptyChat
+      ? 'none'
+      : '1px solid var(--border-dim)',
+    width: isEmptyChat ? '900px' : '100%',
+    maxWidth: isEmptyChat ? '900px' : 'unset',
+    alignSelf: 'center',
+  }}
+>
             <div style={{
               display: 'flex', alignItems: 'center', gap: 10,
               border: '1px solid var(--border-mid)',
