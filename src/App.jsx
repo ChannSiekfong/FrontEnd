@@ -36,7 +36,7 @@ export default function App() {
         {/* protected routes */}
           <Route path="/profiles" element={<ProtectedRoute><ProfileSelectionPage /></ProtectedRoute>} />
           <Route path="/dashboard/omni-search" element={<ProtectedRoute><OmniSearchPage /></ProtectedRoute>} />
-          <Route path="/dashboard/memory-archives" element={<ProtectedRoute><MemoryArchivesPage /></ProtectedRoute>} />
+          {/* <Route path="/dashboard/memory-archives" element={<ProtectedRoute><MemoryArchivesPage /></ProtectedRoute>} /> */}
           <Route path="/dashboard/neural-links" element={<ProtectedRoute><IntegrationsPage /></ProtectedRoute>} />
           <Route path="/dashboard/system-config" element={<ProtectedRoute><SystemConfigPage /></ProtectedRoute>} />
       </Routes>

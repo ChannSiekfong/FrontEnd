@@ -142,7 +142,7 @@ export default function MemoryArchivesPage() {
       <div style={{ display: 'flex', flex: 1, alignItems: 'flex-start' }}>
         <Sidebar />
 
-        <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto', marginLeft: 210 }}>
           {/* History list */}
           <div style={{ maxWidth: 620 }}>
             {Object.entries(HISTORY).map(([day, items]) => (
@@ -237,23 +237,6 @@ export default function MemoryArchivesPage() {
       </div>
 
       {/* Bottom status */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '8px 20px',
-        borderTop: '1px solid var(--border-dim)',
-        background: 'rgba(10,11,14,.9)',
-        fontSize: 8, letterSpacing: '0.12em', color: 'var(--text-muted)',
-      }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--accent-green)', display: 'inline-block' }} />
-          SYSTEM_LIVE &nbsp; V1.4.2_DELTA
-        </span>
-        <div style={{ display: 'flex', gap: 20 }}>
-          <span>MEMORY: 4.2GB / 16GB</span>
-          <span>ENC: AES-256</span>
-          <span>05:43:28</span>
-        </div>
-      </div>
     </div>
   );
 }

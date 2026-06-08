@@ -192,6 +192,7 @@ function CreateProfileCard({ onClick }) {
 
 /* ---------------- MAIN PAGE ---------------- */
 
+
 export default function ProfileSelectionPage() {
   const navigate = useNavigate();
   const [refreshFlag, setRefreshFlag] = useState(0);
@@ -318,7 +319,10 @@ export default function ProfileSelectionPage() {
                 <ProfileCard
                   key={p.id}
                   profile={p}
-                  onSelect={() => navigate("/dashboard/omni-search")}
+                  onSelect={() => {
+                    localStorage.setItem("currentProfileId", p.id);
+                    navigate(`/dashboard/omni-search?profileId=${p.id}`)
+                  }}
                 />
               ))}
 
