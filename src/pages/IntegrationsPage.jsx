@@ -502,7 +502,7 @@ const list = [
       <div style={styles.shell}>
         <Sidebar />
 
-        <main style={styles.main}>
+        <main style={{marginLeft: 200, flex: 1, padding: 32 }}>
           <h1 style={styles.pageTitle}>Integrations</h1>
 
           <div style={styles.grid}>

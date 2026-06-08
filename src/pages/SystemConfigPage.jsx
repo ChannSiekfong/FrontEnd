@@ -35,7 +35,7 @@ export default function SystemConfigPage() {
       <div style={{ display: 'flex', flex: 1, alignItems: 'flex-start' }}>
         <Sidebar />
 
-        <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto', marginLeft: 200 }}>
           {/* Page header */}
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 8 }}>

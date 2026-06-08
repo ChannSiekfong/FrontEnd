@@ -5,6 +5,7 @@ import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
 import StatusBar from '../components/ui/StatusBar';
 import { useSearch } from '../hook/search.hook';
+import { useChat } from '../hook/chat.hook';
 
 const SendIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -41,7 +42,7 @@ function UserMessage({ msg }) {
   );
 }
 
-function AiMessage({ msg, onClick }) {
+function AiMessage({ msg, onClick, dots }) {
   return (
     <div
     style={{ marginBottom: 8}}>
@@ -57,8 +58,8 @@ function AiMessage({ msg, onClick }) {
         fontSize: 9, letterSpacing: '0.14em',
       }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', display: 'inline-block' }} />
-          <span style={{ color: 'var(--accent-blue)' }}>AI_COPROCESSOR_LINK</span>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-blue)', display: 'inline-block', border: '1px solid var(--bg-input)' }} />
+          <span style={{ color: 'var(--accent-blue)' }}>Context Buddy</span>
         </span>
         <span style={{ color: 'var(--text-muted)' }}>VER_4.2.0</span>
       </div>
@@ -72,7 +73,7 @@ function AiMessage({ msg, onClick }) {
         <p style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 14, lineHeight: 1.6 }}>
           {msg.statusText && msg.text === "" && (
             <span style={{ opacity: 0.6 }}>
-              {msg.statusText}
+              {msg.statusText}{dots}
             </span>
           )}
           {msg.text && (
@@ -95,7 +96,7 @@ function AiMessage({ msg, onClick }) {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, letterSpacing: '0.14em', color: src.dot }}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: src.dot, display: 'inline-block' }} />
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: src.dot, display: 'inline-block', border: '1px solid var(--bg-input)' }} />
                     {src.service}
                   </span>
                   <ExtLinkIcon />
@@ -147,23 +148,13 @@ function AiMessage({ msg, onClick }) {
                 cursor: 'pointer',
                 padding: '6px 10px',
                 borderRadius: 999,
-                border: '1px solid rgba(74,158,255,.25)',
-                background: 'rgba(74,158,255,.08)',
-                color: '#4a9eff',
+                border: '1px solid rgba(74,158,255,.3)',
+                background: 'rgba(74,158,255,.1)',
                 fontSize: 10,
                 letterSpacing: '.08em',
                 transition: 'all .2s ease',
               }}
             >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: '50%',
-                  background: '#4a9eff',
-                }}
-              />
-
               <span>
                 {msg.rawSources.length} VIEW SOURCES USED
               </span>
@@ -231,7 +222,7 @@ function ContextModal({ message, onClose }) {
               color: 'var(--text-primary)',
             }}
           >
-            {message.rawSources?.length || 0} documents used
+            {message.rawSources?.length || 0} sources used
           </div>
 
           {/* CLOSE */}
@@ -282,7 +273,7 @@ function ContextModal({ message, onClose }) {
                   setExpandedSource(expanded ? null : source.id)
                 }
                 style={{
-                  marginBottom: 18,
+                  marginBottom: 24,
                   padding: 14,
                   borderRadius: 10,
                   background: 'rgba(255,255,255,0.02)',
@@ -385,6 +376,13 @@ function ContextModal({ message, onClose }) {
 
 export default function OmniSearchPage() {
   const { search } = useSearch();
+  const { fetch_conversation } = useChat();
+  const location = useLocation();
+
+  const chatId = new URLSearchParams(location.search).get('chatId');
+  const currentProfileId = new URLSearchParams(location.search).get('profileId');
+
+  const [dots, setDots] = useState(".");
 
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [input, setInput] = useState('');
@@ -393,9 +391,55 @@ export default function OmniSearchPage() {
 
   const [selectedMessage, setSelectedMessage] = useState(null);
 
+useEffect(() => {
+  if (!chatId) return;
+
+  fetch_conversation(chatId).then((response) => {
+    console.log(response);
+
+    const formatted = response.data.flatMap((conversation) => [
+      {
+        id: `${conversation.id}-user`,
+        type: "user",
+        text: conversation.query,
+      },
+      {
+        id: `${conversation.id}-ai`,
+        type: "ai",
+        text: conversation.response,
+        rawSources: conversation.results || [],
+        // sources: (conversation.results || []).map((src) => ({
+        //   service: src.type || "EMAIL",
+        //   dot: src.type === "EMAIL" ? "#4a9eff" : "#a855f7",
+        //   title: src.subject || "No Subject",
+        //   excerpt: (src.content || "").slice(0, 120),
+        // })),
+        status: "done",
+      },
+    ]);
+
+    setMessages(formatted);
+  });
+}, [chatId]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    let step = 0;
+
+    const interval = setInterval(() => {
+      step = (step + 1) % 4;
+
+      if (step === 0) setDots(".");
+      if (step === 1) setDots("..");
+      if (step === 2) setDots("...");
+      if (step === 3) setDots("");
+    }, 400); // speed control
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSend = async () => {
     const text = input.trim();
@@ -425,7 +469,7 @@ export default function OmniSearchPage() {
 
     await search(text, aiId, (event) => {
       handleStreamEvent(event, aiId);
-    });
+    }, chatId, currentProfileId);
   };
 
   const updateAIMessage = (aiId, updater) => {
@@ -501,7 +545,7 @@ export default function OmniSearchPage() {
         <Sidebar />
 
         {/* Main chat area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: 1, display: 'flex', marginLeft: 200, flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 0' }}>
             {/* User query timestamp */}
             {messages.map((msg, i) => (
@@ -521,6 +565,7 @@ export default function OmniSearchPage() {
                       setSelectedMessage(msg);
                     }
                   }}
+                  dots={dots}
                 />}
               </div>
             ))}

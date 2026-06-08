@@ -1,32 +1,31 @@
 // src/components/layout/Sidebar.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
-
-const SearchIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.35-4.35" />
-  </svg>
-);
-
-const ArchiveIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-  </svg>
-);
-
-const LinkIcon2 = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-  </svg>
-);
-
-const ConfigIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
+import { useChat } from '../../hook/chat.hook';
+import { useEffect, useState } from 'react'; // Added useState
+import { useLogout } from '../../hook/authentication.hook';
+// i want 20 mock chats for testing the UI, each with id, title, and created_at
+const mock_chats = [
+  { id: '1', title: 'Chat about React', created_at: '2024-01-01' },
+  { id: '2', title: 'Chat about Node.js', created_at: '2024-02-15' },
+  { id: '3', title: 'Chat about AI', created_at: '2024-03-10' },
+  { id: '4', title: 'Chat about Databases', created_at: '2024-04-05' },
+  { id: '5', title: 'Chat about DevOps', created_at: '2024-05-20' },
+  { id: '6', title: 'Chat about Cloud Computing', created_at: '2024-06-18' },
+  { id: '7', title: 'Chat about Cybersecurity', created_at: '2024-07-22' },
+  { id: '8', title: 'Chat about Mobile Development', created_at: '2024-08-30' },
+  { id: '9', title: 'Chat about Game Development', created_at: '2024-09-12' },
+  { id: '10', title: 'Chat about Data Science', created_at: '2024-10-01' },
+  { id: '11', title: 'Chat about Machine Learning', created_at: '2024-11-15' },
+  { id: '12', title: 'Chat about Deep Learning', created_at: '2024-12-05' },
+  { id: '13', title: 'Chat about Natural Language Processing', created_at: '2025-01-20' },
+  { id: '14', title: 'Chat about Computer Vision', created_at: '2025-02-28' },
+  { id: '15', title: 'Chat about Robotics', created_at: '2025-03-18' },
+  { id: '16', title: 'Chat about Internet of Things', created_at: '2025-04-10' },
+  { id: '17', title: 'Chat about Blockchain', created_at: '2025-05-25' },
+  { id: '18', title: 'Chat about Quantum Computing', created_at: '2025-06-30' },
+  { id: '19', title: 'Chat about Virtual Reality', created_at: '2025-07-15' },
+  { id: '20', title: 'Chat about Augmented Reality', created_at: '2025-08-05' },
+];
 
 const SecurityIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -46,131 +45,222 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const currentProfileId = localStorage.getItem('currentProfileId');
+  // 1. Create a state variable to hold the chats array
+  const [chats, setChats] = useState([]);
 
-  const NAV_ITEMS = [
-    {
-      route: '/dashboard/omni-search',
-      navigateTo: `/dashboard/omni-search?profileId=${currentProfileId}`,
-      icon: <SearchIcon />,
-      label: 'Omni-Search',
-    },
-    {
-      route: '/dashboard/memory-archives',
-      navigateTo: `/dashboard/memory-archives?profileId=${currentProfileId}`,
-      icon: <ArchiveIcon />,
-      label: 'Memory Archives',
-    },
-    {
-      route: '/dashboard/neural-links',
-      navigateTo: `/dashboard/neural-links?profileId=${currentProfileId}`,
-      icon: <LinkIcon2 />,
-      label: 'Neural Integration',
-    },
-    {
-      route: '/dashboard/system-config',
-      navigateTo: `/dashboard/system-config?profileId=${currentProfileId}`,
-      icon: <ConfigIcon />,
-      label: 'System Config',
-    },
-  ];
+  const { logoutUser } = useLogout();
+
+  const handleLogout = async () => {
+    await logoutUser();
+  };
+
+  const currentProfileId = localStorage.getItem('currentProfileId');
+  const { fetch_chats, create_chat } = useChat();
+
+  const handleCreateChat = async (profileId) => {
+    const newChat = await create_chat(profileId);
+    // refetch chats after creating a new one
+    const response = await fetch_chats(profileId);
+    if (response && response.data) {
+      setChats(response.data);
+    }
+  };
+
+  useEffect(() => {
+    if (!currentProfileId) {
+      console.log("No profileId found");
+      return;
+    }
+
+    const loadChats = async () => {
+      try {
+        const response = await fetch_chats(currentProfileId);
+        console.log("Chats loaded:", response);
+
+        // 2. Safely capture the data array matching your payload structure
+        if (response && response.data) {
+          setChats(response.data);
+        }
+      } catch (err) {
+        console.error("Failed to load chats:", err);
+      }
+    };
+
+    loadChats();
+  }, [currentProfileId]);
 
   return (
-    <aside
-      style={{
-        width: 200,
-        alignSelf: 'stretch',
-        background: 'var(--bg-sidebar)',
-        borderRight: '1px solid var(--border-dim)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px 0',
-        flexShrink: 0,
-        overflowY: 'auto',
-      }}
-    >
-      <nav style={{ flex: 1, padding: '0 8px' }}>
-        {NAV_ITEMS.map((item) => {
-          const active = location.pathname === item.route;
+<aside
+  style={{
+    position: "fixed",
+    left: 0,
+    top: 70,
+    height: "calc(100vh - 70px)",
+    width: 200,
+
+    background: "var(--bg-sidebar)",
+    borderRight: "1px solid var(--border-dim)",
+
+    display: "flex",
+    flexDirection: "column",
+
+    padding: "12px 0",
+
+    overflow: "hidden",
+    zIndex: 50,
+  }}
+>
+      <button
+        onClick={() => {
+          handleCreateChat(currentProfileId);
+        }}
+        style={{
+          width: "100%",
+          padding: "11px 14px",
+          background: "rgba(168,85,247,0.15)",
+          border: "1px solid rgba(168,85,247,0.3)",
+          color: "#c084fc",
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          letterSpacing: "0.16em",
+          cursor: "pointer",
+          marginBottom: 12,
+          transition: "all 0.2s",
+        }}
+      >
+        NEW_SEARCH
+      </button>
+
+      <hr style={{ border: "none", borderTop: "1px solid var(--border-dim)", margin: "12px 0" }} />
+
+      {/* 3. Rendered Chats List Section */}
+<div
+  style={{
+    flex: 1,
+
+    display: "flex",
+    flexDirection: "column",
+
+    gap: 8,
+    padding: "0 8px",
+
+    overflowY: "auto",
+    overflowX: "hidden",
+  }}
+>
+        {chats.map((chat) => {
+          const isActive = location.pathname.includes(chat.id);
 
           return (
             <button
-              key={item.route}
-              onClick={() => navigate(item.navigateTo)}
+              key={chat.id}
+              onClick={() => navigate(`/dashboard/omni-search?profileId=${currentProfileId}&chatId=${chat.id}`)}
               style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '10px 12px',
-                background: active
-                  ? 'rgba(74,158,255,0.08)'
-                  : 'transparent',
-                border: 'none',
-                borderLeft: active
-                  ? '2px solid var(--accent-blue)'
-                  : '2px solid transparent',
-                color: active
-                  ? 'var(--text-primary)'
-                  : 'var(--text-dim)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'all 0.2s',
-                letterSpacing: '0.04em',
-                marginBottom: 2,
+                minHeight: 64,
+                width: "100%",
+                textAlign: "left",
+                padding: "10px 12px",
+                marginBottom: 8,
+                borderRadius: 10,
+                border: isActive
+                  ? "1px solid rgba(168,85,247,0.6)"
+                  : "1px solid rgba(255,255,255,0.06)",
+                background: isActive
+                  ? "linear-gradient(135deg, rgba(168,85,247,0.18), rgba(59,130,246,0.08))"
+                  : "rgba(255,255,255,0.03)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                boxShadow: isActive
+                  ? "0 8px 25px rgba(168,85,247,0.15)"
+                  : "0 2px 10px rgba(0,0,0,0.15)",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                position: "relative",
+                overflow: "hidden",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.background =
+                    "rgba(255,255,255,0.06)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.transform = "translateY(0px)";
+                  e.currentTarget.style.background =
+                    "rgba(255,255,255,0.03)";
+                }
               }}
             >
-              <span
+              {/* Left accent bar */}
+              <div
                 style={{
-                  color: active
-                    ? 'var(--accent-blue)'
-                    : 'var(--text-dim)',
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 3,
+                  background: isActive
+                    ? "linear-gradient(to bottom, #a855f7, #3b82f6)"
+                    : "transparent",
+                }}
+              />
+
+              {/* Title */}
+              <div
+                style={{
+                  fontSize: 13,
+                  fontFamily: "var(--font-sans, inherit)",
+                  color: isActive ? "#ffffff" : "rgba(255,255,255,0.75)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  marginBottom: 4,
                 }}
               >
-                {item.icon}
-              </span>
+                {chat.title || "Untitled Chat"}
+              </div>
 
-              {item.label}
+              {/* Meta row */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                  color: "rgba(255,255,255,0.35)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                <span>CHAT</span>
+                <span>
+                  {chat.created_at
+                    ? new Date(chat.created_at).toLocaleDateString()
+                    : ""}
+                </span>
+              </div>
             </button>
           );
         })}
-      </nav>
+      </div>
 
-      <div style={{ padding: '0 8px' }}>
+      <div style={{ padding: "0 8px" }}>
         <button
           style={{
-            width: '100%',
-            padding: '11px 14px',
-            background: 'rgba(168,85,247,0.15)',
-            border: '1px solid rgba(168,85,247,0.3)',
-            color: '#c084fc',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            letterSpacing: '0.16em',
-            cursor: 'pointer',
-            marginBottom: 12,
-            transition: 'all 0.2s',
-          }}
-        >
-          SYNC_DATA
-        </button>
-
-        <button
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
             gap: 8,
-            padding: '8px 12px',
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-dim)',
-            fontFamily: 'var(--font-mono)',
+            padding: "8px 12px",
+            background: "none",
+            border: "none",
+            color: "var(--text-dim)",
+            fontFamily: "var(--font-mono)",
             fontSize: 11,
-            cursor: 'pointer',
-            letterSpacing: '0.08em',
+            cursor: "pointer",
+            letterSpacing: "0.08em",
             marginBottom: 4,
           }}
         >
@@ -179,20 +269,22 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => navigate('/signup')}
+          onClick={() => {
+            handleLogout();
+          }}
           style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
             gap: 8,
-            padding: '8px 12px',
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-dim)',
-            fontFamily: 'var(--font-mono)',
+            padding: "8px 12px",
+            background: "none",
+            border: "none",
+            color: "var(--text-dim)",
+            fontFamily: "var(--font-mono)",
             fontSize: 11,
-            cursor: 'pointer',
-            letterSpacing: '0.08em',
+            cursor: "pointer",
+            letterSpacing: "0.08em",
           }}
         >
           <LogoutIcon />

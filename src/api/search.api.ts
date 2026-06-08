@@ -1,13 +1,13 @@
 
 export const BASE_URL = "search";
 
-export const searchAPI = async (query: string, aiId: string, onEvent: (data: any) => void) => {
-  const response = await fetch(`http://localhost:8000/api/${BASE_URL}/stream`, {
+export const searchAPI = async (query: string, aiId: string, onEvent: (data: any) => void, chatId?: string, profileId?: string) => {
+  const response = await fetch(`http://localhost:8000/api/${BASE_URL}/stream?chatId=${chatId}&profileId=${profileId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ query, aiId }),
+    body: JSON.stringify({ query, aiId}),
     credentials: "include",
   });
 

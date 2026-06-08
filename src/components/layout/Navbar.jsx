@@ -1,6 +1,33 @@
 // src/components/layout/Navbar.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 
+
+const SearchIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.35-4.35" />
+  </svg>
+);
+
+const ArchiveIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+  </svg>
+);
+
+const LinkIcon2 = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  </svg>
+);
+
+const ConfigIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+    <circle cx="12" cy="12" r="3" />
+  </svg>
+);
 const BellIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -13,20 +40,39 @@ const SyncIcon = () => (
 );
 
 // Map nav tab → default dashboard route
-const NAV_TABS = [
-  { label: 'PERSONAL',  path: '/dashboard/omni-search' },
-  { label: 'WORKSPACE', path: '/dashboard/memory-archives' },
-  { label: 'ENCRYPTED', path: '/dashboard/system-config' },
-];
+
+
 
 export default function Navbar({ showSidebar = false }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const location = useLocation();
+  const currentProfileId = localStorage.getItem('currentProfileId');
+  const NAV_TABS = [
+    { label: 'OMNI-SEARCH',  path: `/dashboard/omni-search?profileId=${currentProfileId}`, icon: <SearchIcon /> },
+    { label: 'MEMORY-ARCHIVES', path: `/dashboard/memory-archives?profileId=${currentProfileId}`, icon: <ArchiveIcon /> },
+    {label: 'NEURAL-LINKS', path: `/dashboard/neural-links?profileId=${currentProfileId}`, icon: <LinkIcon2 /> },
+    { label: 'SYSTEM-CONFIG', path: `/dashboard/system-config?profileId=${currentProfileId}`, icon: <ConfigIcon /> },
+  ];
+  const activeTab = (() => {
+    if (pathname.includes('/omni-search')) {
+      return 'OMNI-SEARCH';
+    }
 
-  const activeTab = pathname === '/profiles' ? null
-    : pathname.includes('memory') ? 'WORKSPACE'
-    : pathname.includes('system') ? 'ENCRYPTED'
-    : 'PERSONAL';
+    if (pathname.includes('/memory-archives')) {
+      return 'MEMORY-ARCHIVES';
+    }
+
+    if (pathname.includes('/neural-links')) {
+      return 'NEURAL-LINKS';
+    }
+
+    if (pathname.includes('/system-config')) {
+      return 'SYSTEM-CONFIG';
+    }
+
+    return null;
+  })();
 
   return (
     <nav style={{
@@ -45,20 +91,73 @@ export default function Navbar({ showSidebar = false }) {
         CONTEXT_SEARCH
       </div>
 
-      <div style={{ display: 'flex', gap: 24 }}>
-        {NAV_TABS.map(tab => (
-          <button key={tab.label} onClick={() => navigate(tab.path)} style={{
-            background: 'none', border: 'none',
-            color: activeTab === tab.label ? 'var(--text-primary)' : 'var(--text-dim)',
-            fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.14em',
-            cursor: 'pointer', padding: '4px 0',
-            borderBottom: activeTab === tab.label
-              ? '1px solid var(--accent-blue)' : '1px solid transparent',
-            transition: 'all 0.2s',
-          }}>
-            {tab.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 10 }}>
+        {NAV_TABS.map(tab => {
+          const isActive = activeTab === tab.label;
+
+          return (
+            <button
+              key={tab.label}
+              onClick={() => navigate(tab.path)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+
+                background: isActive
+                  ? 'rgba(59,130,246,0.15)'
+                  : 'transparent',
+
+                border: isActive
+                  ? '1px solid rgba(59,130,246,0.3)'
+                  : '1px solid transparent',
+
+                color: isActive
+                  ? '#ffffff'
+                  : 'rgba(255,255,255,0.55)',
+
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                fontWeight: isActive ? 600 : 500,
+                letterSpacing: '0.14em',
+
+                cursor: 'pointer',
+                padding: '8px 12px',
+
+
+                transition: 'all 0.2s ease',
+              }}
+
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.85)';
+                }
+              }}
+
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.55)';
+                }
+              }}
+            >
+              <span
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: isActive
+                    ? '#ffffff'
+                    : 'rgba(255,255,255,0.55)',
+                }}
+              >
+                {tab.icon}
+              </span>
+
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div style={{ flex: 1 }} />
