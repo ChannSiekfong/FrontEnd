@@ -133,7 +133,7 @@ export default function Sidebar() {
     } catch (err) {
       console.error("Failed to load chats:", err);
     }
-  }, [currentProfileId, fetch_chats]);
+  }, [currentProfileId]);
 
   // 2. Fetch data initially on load
   useEffect(() => {

@@ -649,12 +649,22 @@ export default function OmniSearchPage() {
   };
 
   const handleCreateNewChat = async () => {
-    const response = await create_chat(currentProfileId);
+      const activeProfileId = currentProfileId || localStorage.getItem('currentProfileId');
 
-    if(response) {
-      window.dispatchEvent(new Event('sync_sidebar_chats'));
-    }
-  };
+      try {
+        // 1. Run the backend creation logic
+        await create_chat(activeProfileId);
+
+        // 2. Give the database a tiny split second (200ms) to finish writing the row,
+        // then force the sidebar event to fire regardless of the 'undefined' return.
+        setTimeout(() => {
+          window.dispatchEvent(new Event('sync_sidebar_chats'));
+        }, 100);
+
+      } catch (err) {
+        console.error("Error during session stream generation:", err);
+      }
+    };
 
   return (
     <div
