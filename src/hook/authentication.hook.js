@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 
-import { loginAPI, registerAPI, logoutAPI } from '../api/authentication.api';
+import { loginAPI, registerAPI, logoutAPI, checkAuthAPI } from '../api/authentication.api';
+import { useAuth } from '../helper/auth.context';
 
 
 export const useRegister = () => {
@@ -20,16 +22,21 @@ export const useRegister = () => {
 
 export const useLogin = () => {
   const navigate = useNavigate();
+  const { checkAuth } = useAuth();
+
   const loginUser = async (email, hash_password) => {
     const data = await loginAPI(email, hash_password);
 
-    if (data.status === "success") {
-      navigate('/profiles');
-    }
+    if (data.status !== "success") return data;
+
+    await checkAuth();
+    navigate("/profiles");
+
     return data;
-  }
+  };
+
   return { loginUser };
-}
+};
 
 export const useLogout = () => {
   const navigate = useNavigate();
