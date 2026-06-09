@@ -20,6 +20,7 @@ const SendIcon = () => (
     <polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
+
 const ExtLinkIcon = () => (
   <svg
     width="11"
@@ -35,13 +36,25 @@ const ExtLinkIcon = () => (
   </svg>
 );
 
+const PlusIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+
 const INITIAL_MESSAGES = [];
 
 function UserMessage({ msg }) {
   return (
-    <div
-      style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}
-    >
+    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 6 }}>
       <div
         style={{
           background: "#1a2235",
@@ -118,9 +131,7 @@ function AiMessage({ msg, onClick, dots }) {
             </span>
           )}
           {msg.text && <span style={{ opacity: 0.9 }}>{msg.text}</span>}
-          {msg.status === "streaming" && (
-            <span style={{ opacity: 0.7 }}>▍</span>
-          )}
+          {msg.status === "streaming" && <span style={{ opacity: 0.7 }}>▍</span>}
         </p>
 
         {msg.sources && (
@@ -326,7 +337,7 @@ function ContextModal({ message, onClose }) {
             style={{
               marginTop: 6,
               fontSize: 16,
-              fontWeight: 600,
+              fontWeight: 700,
               color: "var(--text-primary)",
             }}
           >
@@ -371,7 +382,7 @@ function ContextModal({ message, onClose }) {
             padding: 14,
           }}
         >
-          {message.rawSources?.map((source, index) => {
+          {message.rawSources?.map((source) => {
             const expanded = expandedSource === source.id;
 
             return (
@@ -389,7 +400,6 @@ function ContextModal({ message, onClose }) {
                 }}
               >
                 {/* TITLE */}
-                {/* i want title to be alot more bold  */}
                 <div
                   style={{
                     fontSize: 18,
@@ -441,7 +451,7 @@ function ContextModal({ message, onClose }) {
                     alignItems: "center",
                   }}
                 >
-                  {/* RELEVANCE (GREEN not too dark  but subtle) */}
+                  {/* RELEVANCE */}
                   <div
                     style={{
                       fontSize: 11,
@@ -455,7 +465,7 @@ function ContextModal({ message, onClose }) {
                     {(source.finalScore * 100).toFixed(1)}% relevant
                   </div>
 
-                  {/* SHOW MORE (clean, not button-like) */}
+                  {/* SHOW MORE */}
                   {source.content.length > 140 && (
                     <div
                       style={{
@@ -480,26 +490,26 @@ function ContextModal({ message, onClose }) {
 
 export default function OmniSearchPage() {
   const { search } = useSearch();
-  const { fetch_conversation } = useChat();
+  const { fetch_conversation, create_chat, fetch_chats } = useChat();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const chatId = new URLSearchParams(location.search).get("chatId");
-  const currentProfileId = new URLSearchParams(location.search).get(
-    "profileId",
-  );
+  const currentProfileId = new URLSearchParams(location.search).get("profileId");
 
   const [dots, setDots] = useState(".");
-
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
-  const [typing, setTyping] = useState(false);
   const bottomRef = useRef(null);
 
   const [selectedMessage, setSelectedMessage] = useState(null);
   const isEmptyChat = messages.length === 0;
 
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId) {
+      setMessages([]); // Clear down state if missing ID entirely
+      return;
+    }
 
     fetch_conversation(chatId).then((response) => {
       console.log(response);
@@ -515,12 +525,6 @@ export default function OmniSearchPage() {
           type: "ai",
           text: conversation.response,
           rawSources: conversation.results || [],
-          // sources: (conversation.results || []).map((src) => ({
-          //   service: src.type || "EMAIL",
-          //   dot: src.type === "EMAIL" ? "#4a9eff" : "#a855f7",
-          //   title: src.subject || "No Subject",
-          //   excerpt: (src.content || "").slice(0, 120),
-          // })),
           status: "done",
         },
       ]);
@@ -535,22 +539,20 @@ export default function OmniSearchPage() {
 
   useEffect(() => {
     let step = 0;
-
     const interval = setInterval(() => {
       step = (step + 1) % 4;
-
       if (step === 0) setDots(".");
       if (step === 1) setDots("..");
       if (step === 2) setDots("...");
       if (step === 3) setDots("");
-    }, 400); // speed control
+    }, 400);
 
     return () => clearInterval(interval);
   }, []);
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || !chatId) return;
 
     const aiId = Date.now() + 1;
 
@@ -646,6 +648,14 @@ export default function OmniSearchPage() {
     }));
   };
 
+  const handleCreateNewChat = async () => {
+    const response = await create_chat(currentProfileId);
+
+    if(response) {
+      window.dispatchEvent(new Event('sync_sidebar_chats'));
+    }
+  };
+
   return (
     <div
       style={{
@@ -672,7 +682,7 @@ export default function OmniSearchPage() {
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
         <Sidebar />
 
-        {/* Main chat area */}
+        {/* Main context view split */}
         <div
           style={{
             flex: 1,
@@ -682,216 +692,299 @@ export default function OmniSearchPage() {
             overflow: "hidden",
           }}
         >
-          <div
-            style={{
-              flex: 1,
-              overflowY: isEmptyChat ? "hidden" : "auto",
-              padding: isEmptyChat ? 0 : "24px 24px 0",
-            }}
-          >
-            {isEmptyChat ? (
-              <div
-                style={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "0 40px",
-                }}
-              >
-                <div
-                  style={{
-                    textAlign: "center",
-                    marginBottom: 40,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 42,
-                      fontWeight: 700,
-                      color: "var(--text-primary)",
-                      marginBottom: 12,
-                    }}
-                  >
-                    Context Buddy
-                  </div>
-
-                  <div
-                    style={{
-                      color: "var(--text-dim)",
-                      fontSize: 15,
-                      maxWidth: 650,
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    Search across your emails, notes, documents, conversations
-                    and memories using AI-powered retrieval.
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 12,
-                    width: "100%",
-                    maxWidth: 760,
-                  }}
-                >
-                  {[
-                    "Summarize recent emails",
-                    "What projects am I working on?",
-                    "Find conversations about AI",
-                    "Show upcoming deadlines",
-                  ].map((suggestion) => (
-                    <div
-                      key={suggestion}
-                      onClick={() => setInput(suggestion)}
-                      style={{
-                        cursor: "pointer",
-                        padding: 16,
-                        border: "1px solid var(--border-mid)",
-                        background: "var(--bg-card)",
-                        borderRadius: 10,
-                        transition: "all .2s ease",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 13,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {suggestion}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <>
-                {messages.map((msg) => (
-                  <div key={msg.id}>
-                    {msg.type === "user" && (
-                      <>
-                        <UserMessage msg={msg} />
-                        <div
-                          style={{
-                            textAlign: "right",
-                            fontSize: 8,
-                            letterSpacing: "0.12em",
-                            color: "var(--text-muted)",
-                            marginBottom: 14,
-                          }}
-                        >
-                          USER_QUERY_SENT // {msg.time}
-                        </div>
-                      </>
-                    )}
-
-                    {msg.type === "ai" && (
-                      <AiMessage
-                        msg={msg}
-                        dots={dots}
-                        onClick={() => {
-                          if (msg.rawSources?.length) {
-                            setSelectedMessage(msg);
-                          }
-                        }}
-                      />
-                    )}
-                  </div>
-                ))}
-
-                <div ref={bottomRef} />
-              </>
-            )}
-          </div>
-
-          {/* Input bar */}
-          <div
-            style={{
-              padding: isEmptyChat ? "0 24px 80px" : "14px 24px",
-              borderTop: isEmptyChat ? "none" : "1px solid var(--border-dim)",
-              width: isEmptyChat ? "900px" : "100%",
-              maxWidth: isEmptyChat ? "900px" : "unset",
-              alignSelf: "center",
-            }}
-          >
+          {!chatId ? (
+            /* EXCELLENT NO CHAT ID UX WORKSPACE */
             <div
               style={{
+                flex: 1,
                 display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
                 alignItems: "center",
-                gap: 10,
-                border: "1px solid var(--border-mid)",
-                background: "var(--bg-input)",
-                padding: "0 14px",
+                padding: "0 40px",
+                background: "radial-gradient(circle at center, rgba(30,37,56,0.15) 0%, transparent 65%)",
               }}
             >
-              <span
-                style={{
-                  fontSize: 9,
-                  letterSpacing: "0.12em",
-                  color: "var(--text-muted)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  style={{ verticalAlign: "middle", marginRight: 4 }}
+              <div style={{ textAlign: "center", maxWidth: 500 }}>
+                {/* Visual Terminal Placeholder Signifier */}
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 12px",
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                    borderRadius: 999,
+                    color: "var(--text-muted)",
+                    fontSize: 10,
+                    letterSpacing: "0.08em",
+                    fontFamily: "var(--font-mono)",
+                    marginBottom: 24,
+                  }}
                 >
-                  <polyline points="4 17 10 11 4 5" />
-                  <line x1="12" y1="19" x2="20" y2="19" />
-                </svg>
-                QUERY_SYSTEM &gt;
-              </span>
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder="Type your command or search query..."
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ffb84c" }} />
+                  NO_ACTIVE_WORKSPACE
+                </div>
+
+                <h2
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 700,
+                    color: "var(--text-primary)",
+                    marginBottom: 12,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Initialize Context Session
+                </h2>
+
+                <p
+                  style={{
+                    color: "var(--text-dim)",
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    marginBottom: 32,
+                  }}
+                >
+                  To leverage automated semantic deep-retrieval across memories or index files, select a previous running instance from the sidebar or initialize a fresh timeline below.
+                </p>
+
+                <button
+                  onClick={handleCreateNewChat}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
+                    border: "1px solid rgba(74, 158, 255, 0.4)",
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    borderRadius: "8px",
+                    padding: "12px 24px",
+                    color: "var(--text-primary)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "transform 0.15s ease, border-color 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--accent-blue)";
+                    e.currentTarget.style.transform = "translateY(-1px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(74, 158, 255, 0.4)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <PlusIcon />
+                  <span>Create New Session</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ACTIVE CHAT WORKSPACE */
+            <>
+              <div
                 style={{
                   flex: 1,
-                  background: "none",
-                  border: "none",
-                  color: "var(--text-primary)",
-                  fontFamily: "var(--font-mono)",
-                  fontSize: 12,
-                  padding: "13px 0",
-                  outline: "none",
-                  letterSpacing: "0.04em",
-                }}
-              />
-              <button
-                onClick={handleSend}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: input.trim()
-                    ? "var(--accent-blue)"
-                    : "var(--text-muted)",
-                  cursor: "pointer",
-                  padding: "6px",
-                  display: "flex",
-                  transition: "color 0.2s",
+                  overflowY: isEmptyChat ? "hidden" : "auto",
+                  padding: isEmptyChat ? 0 : "24px 24px 0",
                 }}
               >
-                <SendIcon />
-              </button>
-            </div>
-          </div>
+                {isEmptyChat ? (
+                  <div
+                    style={{
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      padding: "0 40px",
+                    }}
+                  >
+                    <div style={{ textAlign: "center", marginBottom: 40 }}>
+                      <div
+                        style={{
+                          fontSize: 42,
+                          fontWeight: 700,
+                          color: "var(--text-primary)",
+                          marginBottom: 12,
+                        }}
+                      >
+                        Context Buddy
+                      </div>
+
+                      <div
+                        style={{
+                          color: "var(--text-dim)",
+                          fontSize: 15,
+                          maxWidth: 650,
+                          lineHeight: 1.7,
+                        }}
+                      >
+                        Search across your emails, notes, documents, conversations
+                        and memories using AI-powered retrieval.
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: 12,
+                        width: "100%",
+                        maxWidth: 760,
+                      }}
+                    >
+                      {[
+                        "Summarize recent emails",
+                        "What projects am I working on?",
+                        "Find conversations about AI",
+                        "Show upcoming deadlines",
+                      ].map((suggestion) => (
+                        <div
+                          key={suggestion}
+                          onClick={() => setInput(suggestion)}
+                          style={{
+                            cursor: "pointer",
+                            padding: 16,
+                            border: "1px solid var(--border-mid)",
+                            background: "var(--bg-card)",
+                            borderRadius: 10,
+                            transition: "all .2s ease",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 13,
+                              color: "var(--text-primary)",
+                            }}
+                          >
+                            {suggestion}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((msg) => (
+                      <div key={msg.id}>
+                        {msg.type === "user" && (
+                          <>
+                            <UserMessage msg={msg} />
+                            <div
+                              style={{
+                                textAlign: "right",
+                                fontSize: 8,
+                                letterSpacing: "0.12em",
+                                color: "var(--text-muted)",
+                                marginBottom: 14,
+                              }}
+                            >
+                              USER_QUERY_SENT // {msg.time}
+                            </div>
+                          </>
+                        )}
+
+                        {msg.type === "ai" && (
+                          <AiMessage
+                            msg={msg}
+                            dots={dots}
+                            onClick={() => {
+                              if (msg.rawSources?.length) {
+                                setSelectedMessage(msg);
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <div ref={bottomRef} />
+                  </>
+                )}
+              </div>
+
+              {/* Input bar wrapper */}
+              <div
+                style={{
+                  padding: isEmptyChat ? "0 24px 80px" : "14px 24px",
+                  borderTop: isEmptyChat ? "none" : "1px solid var(--border-dim)",
+                  width: isEmptyChat ? "900px" : "100%",
+                  maxWidth: isEmptyChat ? "900px" : "unset",
+                  alignSelf: "center",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    border: "1px solid var(--border-mid)",
+                    background: "var(--bg-input)",
+                    padding: "0 14px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 9,
+                      letterSpacing: "0.12em",
+                      color: "var(--text-muted)",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      style={{ verticalAlign: "middle", marginRight: 4 }}
+                    >
+                      <polyline points="4 17 10 11 4 5" />
+                      <line x1="12" y1="19" x2="20" y2="19" />
+                    </svg>
+                    QUERY_SYSTEM &gt;
+                  </span>
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    placeholder="Type your command or search query..."
+                    style={{
+                      flex: 1,
+                      background: "none",
+                      border: "none",
+                      color: "var(--text-primary)",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 12,
+                      padding: "13px 0",
+                      outline: "none",
+                      letterSpacing: "0.04em",
+                    }}
+                  />
+                  <button
+                    onClick={handleSend}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: input.trim() ? "var(--accent-blue)" : "var(--text-muted)",
+                      cursor: "pointer",
+                      padding: "6px",
+                      display: "flex",
+                      transition: "color 0.2s",
+                    }}
+                  >
+                    <SendIcon />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
-      <ContextModal
-        message={selectedMessage}
-        onClose={() => setSelectedMessage(null)}
-      />
+      <ContextModal message={selectedMessage} onClose={() => setSelectedMessage(null)} />
     </div>
   );
 }

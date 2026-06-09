@@ -1,7 +1,7 @@
 // src/components/layout/Sidebar.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useChat } from '../../hook/chat.hook';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLogout } from '../../hook/authentication.hook';
 
 // Helper icons matching the mock reference UI
@@ -122,22 +122,32 @@ export default function Sidebar() {
     }
   };
 
-  useEffect(() => {
+// 1. Create a stable function that doesn't get stuck in old closures
+  const loadChats = useCallback(async () => {
     if (!currentProfileId) return;
-
-    const loadChats = async () => {
-      try {
-        const response = await fetch_chats(currentProfileId);
-        if (response && response.data) {
-          setChats(response.data);
-        }
-      } catch (err) {
-        console.error("Failed to load chats:", err);
+    try {
+      const response = await fetch_chats(currentProfileId);
+      if (response && response.data) {
+        setChats(response.data);
       }
-    };
+    } catch (err) {
+      console.error("Failed to load chats:", err);
+    }
+  }, [currentProfileId, fetch_chats]);
 
+  // 2. Fetch data initially on load
+  useEffect(() => {
     loadChats();
-  }, [currentProfileId]);
+  }, [loadChats]);
+
+  // 3. Keep the event listener fresh and linked to the live function
+  useEffect(() => {
+    window.addEventListener('sync_sidebar_chats', loadChats);
+
+    return () => {
+      window.removeEventListener('sync_sidebar_chats', loadChats);
+    };
+  }, [loadChats]);
 
   const groupedChats = groupChatsByDate(chats);
 

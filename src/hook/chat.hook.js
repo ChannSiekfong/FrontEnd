@@ -1,6 +1,8 @@
 import { fetchChatsAPI, createChatAPI, fetchConversationAPI, deleteChatAPI} from "../api/chat.api"
+import { useNavigate } from "react-router-dom";
 
 export const useChat = () => {
+  const navigate = useNavigate();
   const fetch_chats = async (profileId) => {
     return await fetchChatsAPI(profileId);
   }
@@ -10,7 +12,10 @@ export const useChat = () => {
   }
 
   const create_chat = async (profileId) => {
-    return await createChatAPI(profileId);
+    const data = await createChatAPI(profileId);
+    if (data.status === "success") {
+      navigate(`/dashboard/omni-search?profileId=${profileId}&chatId=${data.data}`);
+    }
   }
 
   const delete_chat = async (chatId) => {
