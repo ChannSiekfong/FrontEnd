@@ -6,6 +6,7 @@ import { CreateProfilePopup } from "../components/ui/CreateProfile";
 import { useGetProfiles } from "../hook/profile.hook";
 import StatusBar from "../components/ui/StatusBar";
 import CornerBrackets from "../components/ui/CornerBrackets";
+import { useDeleteProfile } from "../hook/profile.hook";
 
 /* ---------------- DYNAMIC CSS INJECTION ---------------- */
 // Goldilocks Zone: Balanced iOS shake — noticeable but controlled
@@ -151,7 +152,7 @@ function ConfirmDeleteModal({ profileName, onConfirm, onCancel }) {
               letterSpacing: "0.12em",
             }}
           >
-            CONFIRM_PURGE
+            CONFIRM_DELETE
           </button>
         </div>
       </div>
@@ -354,6 +355,7 @@ export default function ProfileSelectionPage() {
   const navigate = useNavigate();
   const [refreshFlag, setRefreshFlag] = useState(0);
   const { getProfiles } = useGetProfiles();
+  const { deleteProfile } = useDeleteProfile();
 
   const [profiles, setProfiles] = useState([]);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
@@ -371,13 +373,14 @@ export default function ProfileSelectionPage() {
     fetchProfiles();
   }, [refreshFlag]);
 
+
   // Handle actual destruction sequences here
   const handleDeleteConfirm = async () => {
     if (!profileToDelete) return;
     try {
       // Connect to your respective database delete hook here if necessary
       // Example: await deleteProfileById(profileToDelete.id);
-
+      await deleteProfile(profileToDelete.id);
       setProfileToDelete(null);
       triggerRefresh();
     } catch (err) {

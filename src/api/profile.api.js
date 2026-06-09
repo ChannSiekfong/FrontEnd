@@ -22,6 +22,18 @@ export const createProfileAPI = async (name, color, type, password, confirm_pass
   }
 }
 
+export const deleteProfileAPI = async (profileId) => {
+  try {    const response = await api.delete(`${API_BASE_URL}/${profileId}`);
+    toast.success(response.data.message || "Profile deleted successfully!");
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    const message = error.response?.data?.message || "Failed to delete profile. Please try again.";
+    toast.error(message);
+    return { status: "error", message };
+  }
+}
+
 export const getProfilesAPI = async (id) => {
   try {
     const response = await api.get(`${API_BASE_URL}/`);

@@ -1,4 +1,4 @@
-import { createProfileAPI, getProfilesAPI } from "../api/profile.api";
+import { createProfileAPI, deleteProfileAPI, getProfilesAPI } from "../api/profile.api";
 
 export const useCreateProfile = () => {
   const createProfile = async (name, color, type, password, confirm_password) => {
@@ -15,6 +15,13 @@ export const useGetProfiles = () => {
     return profiles;
   }
   return { getProfiles };
+}
+
+export const useDeleteProfile = () => {
+  const deleteProfile = async (profileId) => {
+    return await deleteProfileAPI(profileId);
+  }
+  return { deleteProfile };
 }
 
 export const useGetProfileParam = () => {
