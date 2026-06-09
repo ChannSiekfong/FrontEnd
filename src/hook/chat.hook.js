@@ -1,4 +1,4 @@
-import { fetchChatsAPI, createChatAPI, fetchConversationAPI } from "../api/chat.api"
+import { fetchChatsAPI, createChatAPI, fetchConversationAPI, deleteChatAPI} from "../api/chat.api"
 
 export const useChat = () => {
   const fetch_chats = async (profileId) => {
@@ -12,5 +12,9 @@ export const useChat = () => {
   const create_chat = async (profileId) => {
     return await createChatAPI(profileId);
   }
-  return { fetch_chats, fetch_conversation, create_chat };
+
+  const delete_chat = async (chatId) => {
+    return await deleteChatAPI(chatId);
+  }
+  return { fetch_chats, fetch_conversation, create_chat, delete_chat };
 }

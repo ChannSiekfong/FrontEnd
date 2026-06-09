@@ -7,6 +7,36 @@ import { useGetProfiles } from "../hook/profile.hook";
 import StatusBar from "../components/ui/StatusBar";
 import CornerBrackets from "../components/ui/CornerBrackets";
 
+/* ---------------- DYNAMIC CSS INJECTION ---------------- */
+// Goldilocks Zone: Balanced iOS shake — noticeable but controlled
+if (typeof document !== "undefined") {
+  const styleId = "profile-shake-keyframes";
+  let styleElement = document.getElementById(styleId);
+
+  if (styleElement) {
+    styleElement.remove();
+  }
+
+  const style = document.createElement("style");
+  style.id = styleId;
+  style.textContent = `
+    @keyframes profile-shake {
+      0% { transform: translate(0.3px, 0.3px) rotate(0deg); }
+      16% { transform: translate(-0.3px, -0.2px) rotate(-0.1deg); }
+      32% { transform: translate(-0.2px, 0px) rotate(0.1deg); }
+      48% { transform: translate(0px, 0.3px) rotate(0deg); }
+      64% { transform: translate(0.3px, -0.2px) rotate(0.1deg); }
+      80% { transform: translate(-0.3px, 0.3px) rotate(-0.1deg); }
+      100% { transform: translate(0.3px, -0.2px) rotate(-0.1deg); }
+    }
+    .shake-active {
+      /* 0.5s is the sweet spot between a frantic vibrate (0.35s) and a lazy drift (0.75s) */
+      animation: profile-shake 0.5s infinite ease-in-out;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 /* ---------------- ICONS ---------------- */
 
 const BriefcaseIcon = () => (
@@ -36,9 +66,102 @@ const CheckIcon = () => (
   </svg>
 );
 
+/* ---------------- CONFIRM DELETION MODAL ---------------- */
+
+function ConfirmDeleteModal({ profileName, onConfirm, onCancel }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(10, 11, 16, 0.85)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+    >
+      <div
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-mid)",
+          padding: "32px",
+          maxWidth: "420px",
+          width: "100%",
+          position: "relative",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+        }}
+      >
+        <CornerBrackets color="#ff5f7a" />
+
+        <h3
+          style={{
+            fontFamily: "var(--font-display)",
+            color: "#ff5f7a",
+            fontSize: 18,
+            letterSpacing: "0.1em",
+            marginBottom: 12,
+            textAlign: "center"
+          }}
+        >
+          CRITICAL_DELETION_PROTOCOL
+        </h3>
+
+        <p
+          style={{
+            fontSize: 12,
+            color: "var(--text-dim)",
+            lineHeight: "1.6",
+            marginBottom: 28,
+            textAlign: "center"
+          }}
+        >
+          Are you certain you want to permanently purge profile <strong style={{ color: "var(--text-primary)" }}>{profileName}</strong>? All workspace instances, cache arrays, and AI memory sub-layers will be permanently unlinked.
+        </p>
+
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          <button
+            onClick={onCancel}
+            style={{
+              padding: "10px 20px",
+              background: "transparent",
+              border: "1px solid var(--border-mid)",
+              color: "var(--text-primary)",
+              cursor: "pointer",
+              fontSize: 10,
+              letterSpacing: "0.12em",
+            }}
+          >
+            ABORT_ACTION
+          </button>
+
+          <button
+            onClick={onConfirm}
+            style={{
+              padding: "10px 20px",
+              background: "rgba(255, 95, 122, 0.1)",
+              border: "1px solid #ff5f7a",
+              color: "#ff5f7a",
+              cursor: "pointer",
+              fontSize: 10,
+              letterSpacing: "0.12em",
+            }}
+          >
+            CONFIRM_PURGE
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- PROFILE CARD ---------------- */
 
-function ProfileCard({ profile, onSelect }) {
+function ProfileCard({ profile, onSelect, isEditMode, onDeleteClick }) {
   const [hovered, setHovered] = useState(false);
 
   function getColor(color) {
@@ -55,22 +178,54 @@ function ProfileCard({ profile, onSelect }) {
 
   return (
     <div
-      onClick={onSelect}
-      onMouseEnter={() => setHovered(true)}
+      className={isEditMode ? "shake-active" : ""}
+      onClick={isEditMode ? null : onSelect}
+      onMouseEnter={() => !isEditMode && setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         position: "relative",
         background: hovered ? "var(--bg-card-hover)" : "var(--bg-card)",
-        border: `1px solid var(--border-dim)`,
+        border: `1px solid ${isEditMode ? "#ff5f7a" : "var(--border-dim)"}`,
         padding: "24px",
-        cursor: "pointer",
-        transition: "all 0.2s",
+        cursor: isEditMode ? "default" : "pointer",
+        transition: "background 0.2s, border 0.2s",
       }}
     >
-      {/* ONLY corner accents become dynamic */}
-      <CornerBrackets color={hovered ? color : "#2e3a4f"} />
+      {/* EXPLICIT REMOVE ICON FOR EDIT MODE */}
+      {isEditMode && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Avoid triggering selections or navigations
+            onDeleteClick();
+          }}
+          style={{
+            position: "absolute",
+            top: "-10px",
+            left: "-10px",
+            width: "24px",
+            height: "24px",
+            borderRadius: "50%",
+            background: "#ff5f7a",
+            border: "none",
+            color: "#0a0b10",
+            fontWeight: "bold",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10,
+            fontSize: 11,
+            boxShadow: "0 0 10px rgba(255, 95, 122, 0.4)",
+          }}
+        >
+          ✕
+        </button>
+      )}
 
-      {/* type badge (KEEP NEUTRAL) */}
+      {/* Dynamic system hooks depending on mode state */}
+      <CornerBrackets color={isEditMode ? "#ff5f7a" : hovered ? color : "#2e3a4f"} />
+
+      {/* type badge */}
       <div
         style={{
           position: "absolute",
@@ -87,16 +242,16 @@ function ProfileCard({ profile, onSelect }) {
         {profile.type}
       </div>
 
-      {/* icon box (ONLY BORDER + ICON COLOR changes) */}
+      {/* icon box */}
       <div
         style={{
           width: 52,
           height: 52,
-          border: `1px solid ${color}`,
+          border: `1px solid ${isEditMode ? "#ff5f7a" : color}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: color,
+          color: isEditMode ? "#ff5f7a" : color,
           marginBottom: 16,
           background: "var(--bg-input)",
         }}
@@ -104,7 +259,7 @@ function ProfileCard({ profile, onSelect }) {
         {profile.type === "STANDARD" ? <BriefcaseIcon /> : <PersonIcon />}
       </div>
 
-      {/* name (ONLY optional accent, rest unchanged) */}
+      {/* name */}
       <h3
         style={{
           fontFamily: "var(--font-display)",
@@ -116,31 +271,34 @@ function ProfileCard({ profile, onSelect }) {
         {profile.name}
       </h3>
 
-      {/* sync text (unchanged) */}
+      {/* sync text */}
       <p style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 16 }}>
         Last Sync: {profile.lastSync}
       </p>
 
-      {/* status (ONLY label becomes dynamic accent if you want subtle UX) */}
+      {/* status layer */}
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <span style={{ fontSize: 9, color: color }}>SYNC_COMPLETE</span> {/* optional accent */}
+        <span style={{ fontSize: 9, color: isEditMode ? "#ff5f7a" : color }}>
+          {isEditMode ? "PENDING_MUTATION" : "SYNC_COMPLETE"}
+        </span>
         <CheckIcon />
       </div>
 
-      {/* button (ONLY border accent changes, not background) */}
+      {/* action visualizer */}
       <button
+        disabled={isEditMode}
         style={{
           width: "100%",
           padding: "10px",
-          border: `1px solid ${color}`,
+          border: `1px solid ${isEditMode ? "var(--border-dim)" : color}`,
           background: "var(--bg-input)",
           fontSize: 10,
           letterSpacing: "0.16em",
-          cursor: "pointer",
-          color: "var(--text-primary)",
+          cursor: isEditMode ? "not-allowed" : "pointer",
+          color: isEditMode ? "var(--text-dim)" : "var(--text-primary)",
         }}
       >
-        INITIALIZE_PROFILE
+        {isEditMode ? "TERMINATE_ACCESS" : "INITIALIZE_PROFILE"}
       </button>
     </div>
   );
@@ -192,17 +350,17 @@ function CreateProfileCard({ onClick }) {
 
 /* ---------------- MAIN PAGE ---------------- */
 
-
 export default function ProfileSelectionPage() {
   const navigate = useNavigate();
   const [refreshFlag, setRefreshFlag] = useState(0);
   const { getProfiles } = useGetProfiles();
 
   const [profiles, setProfiles] = useState([]);
+  const [showCreatePopup, setShowCreatePopup] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState(null);
 
   const hasProfiles = profiles.length > 0;
-  const [showCreatePopup, setShowCreatePopup] = useState(false);
-
   const triggerRefresh = () => setRefreshFlag((prev) => prev + 1);
 
   useEffect(() => {
@@ -212,6 +370,20 @@ export default function ProfileSelectionPage() {
     };
     fetchProfiles();
   }, [refreshFlag]);
+
+  // Handle actual destruction sequences here
+  const handleDeleteConfirm = async () => {
+    if (!profileToDelete) return;
+    try {
+      // Connect to your respective database delete hook here if necessary
+      // Example: await deleteProfileById(profileToDelete.id);
+
+      setProfileToDelete(null);
+      triggerRefresh();
+    } catch (err) {
+      console.error("Purge failure:", err);
+    }
+  };
 
   return (
     <div
@@ -231,10 +403,30 @@ export default function ProfileSelectionPage() {
           fontSize: 10,
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center"
         }}
       >
         <span>Profile Selection</span>
-        <LogoutButton />
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {hasProfiles && (
+            <button
+              onClick={() => setIsEditMode(!isEditMode)}
+              style={{
+                background: isEditMode ? "rgba(255, 95, 122, 0.1)" : "transparent",
+                border: `1px solid ${isEditMode ? "#ff5f7a" : "var(--border-mid)"}`,
+                color: isEditMode ? "#ff5f7a" : "var(--text-primary)",
+                padding: "4px 10px",
+                fontSize: 9,
+                cursor: "pointer",
+                letterSpacing: "0.1em",
+                transition: "all 0.2s"
+              }}
+            >
+              {isEditMode ? "EXIT_MANAGE_MODE" : "MANAGE_PROFILES"}
+            </button>
+          )}
+          <LogoutButton />
+        </div>
       </div>
 
       {/* MAIN */}
@@ -298,10 +490,6 @@ export default function ProfileSelectionPage() {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "rgba(74,158,255,0.08)";
                 }}
-                hoverEffect={{
-                  border: "1px solid var(--accent-blue)",
-                  color: "var(--accent-blue)",
-                }}
               >
                 CREATE_FIRST_PROFILE
               </button>
@@ -315,22 +503,38 @@ export default function ProfileSelectionPage() {
                 gap: 20,
               }}
             >
-              {profiles.map((p, i) => (
+              {profiles.map((p) => (
                 <ProfileCard
                   key={p.id}
                   profile={p}
+                  isEditMode={isEditMode}
+                  onDeleteClick={() => setProfileToDelete(p)}
                   onSelect={() => {
                     localStorage.setItem("currentProfileId", p.id);
-                    navigate(`/dashboard/omni-search?profileId=${p.id}`)
+                    navigate(`/dashboard/omni-search?profileId=${p.id}`);
                   }}
                 />
               ))}
 
-              <CreateProfileCard onClick={() => setShowCreatePopup(true)} />
+              {!isEditMode && <CreateProfileCard onClick={() => setShowCreatePopup(true)} />}
             </div>
           )}
 
-          {showCreatePopup && <CreateProfilePopup onClose={() => setShowCreatePopup(false)} triggerRefresh={triggerRefresh} />}
+          {showCreatePopup && (
+            <CreateProfilePopup
+              onClose={() => setShowCreatePopup(false)}
+              triggerRefresh={triggerRefresh}
+            />
+          )}
+
+          {/* SYSTEM OVERLAY MODALS */}
+          {profileToDelete && (
+            <ConfirmDeleteModal
+              profileName={profileToDelete.name}
+              onConfirm={handleDeleteConfirm}
+              onCancel={() => setProfileToDelete(null)}
+            />
+          )}
         </div>
       </div>
 
@@ -338,7 +542,10 @@ export default function ProfileSelectionPage() {
       <div style={{ margin: "0 auto 40px", maxWidth: 960 }}>
         <StatusBar
           left={[
-            { dot: "#4af0c4", label: "SYSTEM_LOAD: 12%" },
+            {
+              dot: isEditMode ? "#ff5f7a" : "#4af0c4",
+              label: isEditMode ? "SYSTEM_STATUS: MUTATION_MODE_ACTIVE" : "SYSTEM_LOAD: 12%"
+            },
             { icon: "▣", label: "SERVER: EDGE_NODE_09" },
           ]}
           right="© 2024 NEURAL_SEARCH_PROTOCOL  ▪ ▪ ▪"

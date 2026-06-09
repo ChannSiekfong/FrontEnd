@@ -17,6 +17,18 @@ export const fetchChatsAPI = async (profileId) => {
   }
 }
 
+export const deleteChatAPI = async (chatId) => {
+  try {
+    const response = await api.delete(`${BASE_URL}/${chatId}`);
+    toast.success(response.data.message || "Chat deleted successfully");
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting chat:", error);
+    toast.error(error.response?.data?.message || "Failed to delete chat");
+    throw error;
+  }
+}
+
 export const fetchConversationAPI = async (chatId) => {
   try {
     const response = await api.get(`${BASE_URL}/get_conversations?chatId=${chatId}`);
