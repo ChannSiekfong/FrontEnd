@@ -36,6 +36,7 @@ export const integrateAPI = async (profileID, type) => {
       window.location.href = response.data.data.url;
       toast.success(response.data.message || "Integration successful!");
       return response.data;
+    } else if (type.toUpperCase() === "TELEGRAM") {
     } else {
       throw new Error("Unsupported integration type");
     }

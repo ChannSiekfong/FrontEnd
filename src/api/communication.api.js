@@ -6,8 +6,13 @@ export const API_BASE_URL = "/communication";
 export const syncAPI = async (type, profileId) => {
   try {
     if(type.toUpperCase() === "GMAIL") {
-      const response = await api.post(`${API_BASE_URL}/gmail/sync/${profileId}`);
+      const response = await api.get(`${API_BASE_URL}/gmail/sync/${profileId}`);
       toast.success(response.data.message || "Gmail sync successful!");
+      return response.data;
+    }
+    else if (type.toUpperCase() === "TELEGRAM") {
+      const response = await api.get(`${API_BASE_URL}/telegram/sync/${profileId}`);
+      toast.success(response.data.message || "Telegram sync successful!");
       return response.data;
     }
 
