@@ -1,5 +1,7 @@
 // src/pages/OmniSearchPage.jsx
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/layout/Sidebar";
@@ -116,23 +118,27 @@ function AiMessage({ msg, onClick, dots }) {
           padding: "16px",
         }}
       >
-        <p
+        <div
           style={{
             fontSize: 13,
             color: "var(--text-primary)",
-            marginBottom: 14,
             lineHeight: 1.6,
+            marginLeft: 8,
           }}
         >
-          {msg.statusText && msg.text === "" && (
+          {msg.statusText && msg.text === "" ? (
             <span style={{ opacity: 0.6 }}>
               {msg.statusText}
               {dots}
             </span>
+          ) : (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {msg.text || ""}
+            </ReactMarkdown>
           )}
-          {msg.text && <span style={{ opacity: 0.9 }}>{msg.text}</span>}
+
           {msg.status === "streaming" && <span style={{ opacity: 0.7 }}>▍</span>}
-        </p>
+        </div>
 
         {msg.sources && (
           <div
