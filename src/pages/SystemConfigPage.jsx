@@ -1,21 +1,20 @@
-// src/pages/SystemConfigPage.jsx
+// System Config — settings page (navbar Config tab)
 import { useState } from 'react';
 import DashboardShell from '../components/layout/DashboardShell';
 import PageHeader from '../components/ui/PageHeader';
-import Footer from '../components/ui/Footer';
-
-import { 
-  ProfileIdentitySection, 
-  DataGovernanceSection, 
-  NeuralThemeSection, 
-  IsolationNotice 
+import { AnimatedSection } from '../components/ui/AnimatedSection';
+import {
+  ProfileIdentitySection,
+  DataGovernanceSection,
+  NeuralThemeSection,
+  IsolationNotice,
 } from '../components/sections/SystemConfigSections';
 
 export default function SystemConfigPage() {
   const [displayName, setDisplayName] = useState('CORE_USER_01');
 
   return (
-    <DashboardShell topBar="Profile Settings">
+    <DashboardShell>
       <PageHeader
         title="SYSTEM_CONFIG"
         badge="LIVE_MODE"
@@ -23,16 +22,20 @@ export default function SystemConfigPage() {
         desc={<>Configure your neural node and data isolation protocols. All changes are scoped to the active profile [<span style={{ color: 'var(--accent-blue)' }}>CORE_USER_01</span>].</>}
       />
 
-      <ProfileIdentitySection displayName={displayName} setDisplayName={setDisplayName} />
+      <AnimatedSection delay={1}>
+        <ProfileIdentitySection displayName={displayName} setDisplayName={setDisplayName} />
+      </AnimatedSection>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
-        <DataGovernanceSection />
-        <NeuralThemeSection />
-      </div>
+      <AnimatedSection delay={2}>
+        <div className="grid-2" style={{ marginBottom: 20 }}>
+          <DataGovernanceSection />
+          <NeuralThemeSection />
+        </div>
+      </AnimatedSection>
 
-      <IsolationNotice />
-
-      <Footer variant="config" />
+      <AnimatedSection delay={3}>
+        <IsolationNotice />
+      </AnimatedSection>
     </DashboardShell>
   );
 }

@@ -8,10 +8,10 @@ export default function ProfileSelectionPage() {
   return (
     <PageShell topBar="Profile Selection">
       <Navbar />
-      <div style={{ flex: 1, padding: '60px 48px 20px', overflowY: 'auto' }}>
+      <div className="profile-page-inner" style={{ flex: 1, padding: '60px 48px 20px', overflowY: 'auto' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
           <div style={{ borderTop: '1px solid var(--border-dim)', marginBottom: 48 }} />
-          <div className="animate-fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+          <div className="animate-fade-up profile-grid">
             {PROFILES.map((p, i) => (
               <div key={p.id} className={`animate-fade-up-delay-${i}`}>
                 <ProfileCard profile={p} />

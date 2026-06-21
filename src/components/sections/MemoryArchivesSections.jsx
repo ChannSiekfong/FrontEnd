@@ -41,7 +41,7 @@ export function HistoryItem({ item }) {
 
 export function StatsRow() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 32, maxWidth: 620 }}>
+    <div className="stats-row-grid">
       {/* Sync Metric */}
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-dim)', padding: '18px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, letterSpacing: '0.14em', color: 'var(--text-muted)', marginBottom: 12 }}>

@@ -1,110 +1,116 @@
-// src/components/layout/Sidebar.jsx
+// Left sidebar — shared 6-item navigation on every dashboard page
 import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  TerminalIcon, ChartIcon, ListIcon, RefreshIcon,
+  HelpIcon, LogoutIcon, ChipIcon, ConfigIcon,
+} from '../ui/Icons';
+import { getActiveSidebarItem, getSidebarItems } from '../../config/navigation';
 
-const SearchIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-  </svg>
-);
-const ArchiveIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
-  </svg>
-);
-const LinkIcon2 = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-  </svg>
-);
-const ConfigIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-    <circle cx="12" cy="12" r="3"/>
-  </svg>
-);
-const SecurityIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M12 2L4 6v6c0 5.55 3.84 10.74 8 12 4.16-1.26 8-6.45 8-12V6l-8-4z"/>
-  </svg>
-);
-const LogoutIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-    <polyline points="16 17 21 12 16 7"/>
-    <line x1="21" y1="12" x2="9" y2="12"/>
-  </svg>
-);
-
-const NAV_ITEMS = [
-  { path: '/dashboard/omni-search',     icon: <SearchIcon />,  label: 'Omni-Search' },
-  { path: '/dashboard/memory-archives', icon: <ArchiveIcon />, label: 'Memory Archives' },
-  { path: '/dashboard/neural-links',    icon: <LinkIcon2 />,   label: 'Neural Links' },
-  { path: '/dashboard/system-config',   icon: <ConfigIcon />,  label: 'System Config' },
-];
+const ICON_MAP = {
+  'current-thread': TerminalIcon,
+  'memory-nodes':   ChipIcon,
+  'data-streams':   ChartIcon,
+  'system-logs':    ListIcon,
+  'config-logs':    ConfigIcon,
+  'sync-status':    RefreshIcon,
+};
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const activeItem = getActiveSidebarItem(pathname);
+  const items = getSidebarItems();
 
   return (
-    <aside style={{
-      width: 200,
-      alignSelf: 'stretch', 
-      background: 'var(--bg-sidebar)',
-      borderRight: '1px solid var(--border-dim)',
-      display: 'flex', flexDirection: 'column',
-      padding: '20px 0', flexShrink: 0,
-      overflowY: 'auto',
-    }}>
-      <nav style={{ flex: 1, padding: '0 8px' }}>
-        {NAV_ITEMS.map(item => {
-          const active = pathname === item.path;
+    <aside className="sidebar">
+      <div className="sidebar-brand-card" style={{
+        margin: '0 12px 20px',
+        padding: '12px 14px',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-dim)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+          <div style={{
+            width: 28, height: 28,
+            background: 'rgba(74,158,255,0.15)',
+            border: '1px solid rgba(74,158,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: 'var(--accent-blue)',
+          }}>
+            <ChipIcon size={14} />
+          </div>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontWeight: 700,
+            fontSize: 13, letterSpacing: '0.06em', color: 'var(--text-primary)',
+          }}>
+            NEURAL_STRIP
+          </span>
+        </div>
+        <div style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--accent-pink)' }}>
+          STATUS: ENCRYPTED
+        </div>
+      </div>
+
+      <nav className="sidebar-nav">
+        {items.map((item) => {
+          const active = activeItem === item.id;
+          const Icon = ICON_MAP[item.id] ?? TerminalIcon;
           return (
-            <button key={item.path} onClick={() => navigate(item.path)} style={{
-              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 12px',
-              background: active ? 'rgba(74,158,255,0.08)' : 'none',
-              border: 'none',
-              borderLeft: active ? '2px solid var(--accent-blue)' : '2px solid transparent',
-              color: active ? 'var(--text-primary)' : 'var(--text-dim)',
-              fontFamily: 'var(--font-mono)', fontSize: 12,
-              cursor: 'pointer', textAlign: 'left',
-              transition: 'all 0.2s', letterSpacing: '0.04em', marginBottom: 2,
-            }}>
-              <span style={{ color: active ? 'var(--accent-blue)' : 'var(--text-dim)' }}>{item.icon}</span>
+            <button
+              key={item.id}
+              onClick={() => navigate(item.path)}
+              className={`sidebar-nav-btn${active ? ' sidebar-nav-btn--active' : ''}`}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '11px 12px',
+                background: active ? 'rgba(168,85,247,0.18)' : 'none',
+                border: 'none',
+                borderLeft: active ? '3px solid var(--accent-purple)' : '3px solid transparent',
+                color: active ? 'var(--text-primary)' : 'var(--text-dim)',
+                fontFamily: 'var(--font-mono)', fontSize: 11,
+                cursor: 'pointer', textAlign: 'left',
+                transition: 'all 0.2s', letterSpacing: '0.08em', marginBottom: 2,
+              }}
+            >
+              <span style={{ color: active ? 'var(--accent-purple)' : 'var(--text-dim)' }}>
+                <Icon size={14} />
+              </span>
               {item.label}
             </button>
           );
         })}
       </nav>
 
-      <div style={{ padding: '0 8px' }}>
-        <button style={{
-          width: '100%', padding: '11px 14px',
-          background: 'rgba(168,85,247,0.15)',
-          border: '1px solid rgba(168,85,247,0.3)',
-          color: '#c084fc', fontFamily: 'var(--font-mono)', fontSize: 11,
-          letterSpacing: '0.16em', cursor: 'pointer',
-          marginBottom: 12, transition: 'all 0.2s',
-        }}>
-          SYNC_DATA
+      <div className="sidebar-footer">
+        <button
+          className="sidebar-new-query"
+          onClick={() => navigate('/dashboard/omni-search')}
+          style={{
+            width: '100%', padding: '12px 14px',
+            background: 'var(--accent-blue)',
+            border: 'none',
+            color: '#0b0c10', fontFamily: 'var(--font-mono)', fontSize: 11,
+            fontWeight: 700, letterSpacing: '0.16em', cursor: 'pointer',
+            marginBottom: 16, transition: 'all 0.2s',
+          }}
+        >
+          NEW_QUERY
         </button>
-        <button style={{
+        <button className="sidebar-help" style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
           padding: '8px 12px', background: 'none', border: 'none',
           color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: 11,
           cursor: 'pointer', letterSpacing: '0.08em', marginBottom: 4,
         }}>
-          <SecurityIcon /> Security
+          <HelpIcon /> HELP
         </button>
-        <button onClick={() => navigate('/signup')} style={{
+        <button className="sidebar-logout" onClick={() => navigate('/signup')} style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
           padding: '8px 12px', background: 'none', border: 'none',
           color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: 11,
           cursor: 'pointer', letterSpacing: '0.08em',
         }}>
-          <LogoutIcon /> Log Out
+          <LogoutIcon /> LOGOUT
         </button>
       </div>
     </aside>

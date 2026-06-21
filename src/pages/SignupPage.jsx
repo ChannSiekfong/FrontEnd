@@ -14,7 +14,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)' }}>
+    <div className="signup-shell">
       <SignupCard>
         <SignupHeader />
         <GoogleSignupButton onClick={() => navigate('/profiles')} />

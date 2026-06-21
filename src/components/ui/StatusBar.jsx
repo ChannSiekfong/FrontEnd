@@ -2,19 +2,8 @@
 
 export default function StatusBar({ left = [], right = '' }) {
   return (
-    <div style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      padding: '10px 20px',
-      borderTop: '1px solid var(--border-dim)',
-      background: 'rgba(10,11,16,0.9)',
-      fontSize: 9,
-      letterSpacing: '0.12em',
-      color: 'var(--text-muted)',
-      fontFamily: 'var(--font-mono)',
-    }}>
-      <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+    <div className="status-bar">
+      <div className="status-bar-left">
         {left.map((item, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {item.dot && (

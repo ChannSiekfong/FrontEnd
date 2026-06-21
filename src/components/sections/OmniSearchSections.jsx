@@ -1,5 +1,6 @@
 // src/components/sections/OmniSearchSections.jsx
 import { useRef, useEffect } from 'react';
+import { SendIcon, ExtLinkIcon } from '../ui/Icons';
 
 export const INITIAL_MESSAGES = [
   {
@@ -19,19 +20,6 @@ export const INITIAL_MESSAGES = [
     analysisTime: '0.842s',
   },
 ];
-
-const SendIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-  </svg>
-);
-
-const ExtLinkIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-  </svg>
-);
 
 export function UserMessage({ msg }) {
   return (
@@ -167,7 +155,7 @@ export function ChatInput({ input, setInput, onSend }) {
 
 export function RightPanel() {
   return (
-    <div style={{ width: 180, borderLeft: '1px solid var(--border-dim)', padding: '20px 14px', background: 'var(--bg-sidebar)', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="right-panel">
       {/* Active Context */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 8, letterSpacing: '0.14em', color: 'var(--text-muted)', marginBottom: 10 }}>

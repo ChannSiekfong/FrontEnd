@@ -92,7 +92,7 @@ export function FeatureTiles() {
   ];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+    <div className="grid-3">
       {tiles.map(t => (
         <Card key={t.title} variant="feature" {...t} />
       ))}
