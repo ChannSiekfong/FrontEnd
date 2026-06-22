@@ -80,7 +80,7 @@ export const STATUS_BARS = {
 
 export function getActiveSection(pathname) {
   const section = MAIN_NAV.find((nav) => nav.match(pathname));
-  return section?.id ?? 'omni-search';
+  return section?.id ?? null;
 }
 
 export function getActiveSidebarItem(pathname) {

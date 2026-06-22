@@ -3,10 +3,10 @@ import DashboardShell from '../components/layout/DashboardShell';
 import {
   NODES,
   PageTitle,
-  FilterBar,
-  BulkActionBar,
+  FilterBox,
   DataTable,
   PaginationBar,
+  MemoryControlRules,
   useNodeSelection,
 } from '../components/sections/DataControlSections';
 
@@ -17,21 +17,26 @@ export default function DataControlPage() {
   } = useNodeSelection(NODES);
 
   return (
-    <DashboardShell mainStyle={{ padding: '28px 32px' }}>
-      <PageTitle />
-      <FilterBar search={search} onSearchChange={setSearch} />
-      <BulkActionBar
-        selectedCount={selectedIds.size}
-        allSelected={allSelected}
-        onSelectAll={toggleAll}
-      />
-      <DataTable
-        nodes={filtered}
-        selectedIds={selectedIds}
-        onToggle={toggle}
-        onToggleAll={toggleAll}
-      />
-      <PaginationBar />
+    <DashboardShell mainStyle={{ padding: 0, height: '100%', overflow: 'hidden' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: '100%' }}>
+        {/* Left Area */}
+        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-dim)', overflowY: 'auto' }}>
+          <PageTitle />
+          <FilterBox search={search} onSearchChange={setSearch} />
+          <DataTable
+            nodes={filtered}
+            selectedIds={selectedIds}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+          />
+          <PaginationBar />
+        </div>
+
+        {/* Right Area */}
+        <div style={{ padding: '28px 24px', overflowY: 'auto' }}>
+          <MemoryControlRules />
+        </div>
+      </div>
     </DashboardShell>
   );
 }

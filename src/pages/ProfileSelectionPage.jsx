@@ -6,7 +6,7 @@ import { ProfileCard, CreateProfileCard, PROFILES } from '../components/sections
 
 export default function ProfileSelectionPage() {
   return (
-    <PageShell topBar="Profile Selection">
+    <PageShell>
       <Navbar />
       <div className="profile-page-inner" style={{ flex: 1, padding: '60px 48px 20px', overflowY: 'auto' }}>
         <div style={{ maxWidth: 960, margin: '0 auto' }}>
