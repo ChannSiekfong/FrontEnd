@@ -1,8 +1,12 @@
-import { syncAPI } from "../api/communication.api";
+import { syncAPI, getCommunicationsAPI } from "../api/communication.api";
 export const useCommunication = () => {
   const sync = async (type, profileId) => {
     return await syncAPI(type, profileId);
   }
 
-  return { sync };
+  const getCommunications = async (profileId, page, limit) => {
+    return await getCommunicationsAPI(profileId, page, limit);
+  }
+
+  return { sync, getCommunications };
 }

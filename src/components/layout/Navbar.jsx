@@ -49,6 +49,7 @@ export default function Navbar({ showSidebar = false }) {
     { label: 'OMNI-SEARCH', path: `/dashboard/omni-search?profileId=${currentProfileId}`, pattern: '/omni-search', icon: <SearchIcon /> },
     { label: 'NEURAL-LINKS', path: `/dashboard/neural-links?profileId=${currentProfileId}`, pattern: '/neural-links', icon: <LinkIcon2 /> },
     { label: 'SYSTEM-CONFIG', path: `/dashboard/system-config?profileId=${currentProfileId}`, pattern: '/system-config', icon: <ConfigIcon /> },
+    { label: 'DATA-CONTROL', path: `/dashboard/data-control?profileId=${currentProfileId}&page=1&limit=25`, pattern: '/data-control', icon: <ArchiveIcon /> },
   ];
 
   const activeTab = NAV_TABS.find(tab => pathname.includes(tab.pattern))?.label || null;

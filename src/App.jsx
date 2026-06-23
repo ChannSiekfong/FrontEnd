@@ -6,6 +6,7 @@ import './index.css';
 import ProfileSelectionPage from './pages/ProfileSelectionPage';
 import IntegrationsPage from './pages/IntegrationsPage';
 import OmniSearchPage from './pages/OmniSearchPage';
+import DataControlPage from './pages/DataControlPage';
 import MemoryArchivesPage from './pages/MemoryArchivesPage';
 import SystemConfigPage from './pages/SystemConfigPage';
 import LoginPage from './pages/LoginPage';
@@ -33,8 +34,10 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
+
         {/* protected routes */}
           <Route path="/profiles" element={<ProtectedRoute><ProfileSelectionPage /></ProtectedRoute>} />
+          <Route path="/dashboard/data-control" element={<ProtectedRoute><DataControlPage /></ProtectedRoute>} />
           <Route path="/dashboard/omni-search" element={<ProtectedRoute><OmniSearchPage /></ProtectedRoute>} />
           {/* <Route path="/dashboard/memory-archives" element={<ProtectedRoute><MemoryArchivesPage /></ProtectedRoute>} /> */}
           <Route path="/dashboard/neural-links" element={<ProtectedRoute><IntegrationsPage /></ProtectedRoute>} />
