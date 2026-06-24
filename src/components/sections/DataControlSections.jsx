@@ -68,7 +68,7 @@ export function PageTitle() {
           DATA CONTROL
         </h1>
       </div>
-      <div style={{
+      {/* <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '6px 14px',
         background: 'rgba(74,158,255,0.05)',
@@ -81,7 +81,7 @@ export function PageTitle() {
           background: 'var(--accent-blue)', display: 'inline-block',
         }} />
         SYSTEM_STATUS: NOMINAL
-      </div>
+      </div> */}
     </div>
   );
 }
@@ -186,33 +186,33 @@ export function DataTable({ nodes, selectedIds, onToggle, onToggleAll, onDeleteS
           background: "transparent",
         }}
       >
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "10px 16px",
-          borderBottom: "1px solid var(--border-dim)"
-        }}>
-          <span style={{ fontSize: 10, color: "var(--text-dim)" }}>
-            {selectedIds.size} SELECTED
-          </span>
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "10px 16px",
+      borderBottom: "1px solid var(--border-dim)"
+    }}>
+      <span style={{ fontSize: 10, color: "var(--text-dim)" }}>
+        {selectedIds.size} SELECTED
+      </span>
 
-          <button
-            onClick={onDeleteSelected}
-            disabled={selectedIds.size === 0}
-            style={{
-              fontSize: 10,
-              padding: "6px 10px",
-              background: selectedIds.size ? "#ff4d4f" : "#333",
-              color: "#fff",
-              border: "none",
-              cursor: selectedIds.size ? "pointer" : "not-allowed",
-              opacity: selectedIds.size ? 1 : 0.4,
-            }}
-          >
-            DELETE
-          </button>
-        </div>
+      <button
+        onClick={onDeleteSelected}
+        disabled={selectedIds.size === 0}
+        style={{
+          fontSize: 10,
+          padding: "6px 10px",
+          background: selectedIds.size ? "#ff4d4f" : "#333",
+          color: "#fff",
+          border: "none",
+          cursor: selectedIds.size ? "pointer" : "not-allowed",
+          opacity: selectedIds.size ? 1 : 0.4,
+        }}
+      >
+        DELETE
+      </button>
+    </div>
         {/* HEADER */}
         <div
           style={{

@@ -18,3 +18,29 @@ export const deleteMemoryNodeAPI = async (communicationIds, profile_id) => {
     return { status: "error", message };
   }
 }
+
+export const searchMemoryAPI = async (
+  profile_id,
+  query,
+  filters = {},
+  limit = 25,
+  offset = 0
+) => {
+  try {
+    const response = await api.post(`${API_BASE_URL}/communication/search/${profile_id}`, {
+      query,
+      filters,
+      limit,
+      offset,
+    });
+
+    console.log("(API) Searched memory nodes:", response.data);
+
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to search memory nodes.";
+    console.error("(API) Search Memory Nodes failed:", message);
+    toast.error(message);
+    return { status: "error", message };
+  }
+}

@@ -25,11 +25,11 @@ export default function DataControlPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const page = Number(searchParams.get('page')) || 1;
-  const limit = Number(searchParams.get('limit')) || 25;
+  const limit = Number(searchParams.get('limit')) || 50;
   const profileId = searchParams.get('profileId') || '';
 
   const { getCommunications } = useCommunication();
-  const { deleteMemoryNode } = useMemory();
+  const { deleteMemoryNode, searchMemory } = useMemory();
   const onDeleteSelected = async () => {
     const ids = Array.from(selectedIds);
 
@@ -68,6 +68,55 @@ export default function DataControlPage() {
 
     fetchData();
   }, [profileId, page, limit]);
+  useEffect(() => {
+    const runSearch = async () => {
+      if (!profileId) return;
+
+      // empty search = load normal list
+      if (!search.trim()) {
+        const res = await getCommunications(profileId, page, limit);
+
+        if (res?.data) {
+          const mapped = res.data.communications.map((item) => ({
+            id: item.id,
+            sender: item.sender,
+            preview: item.content?.slice(0, 80) || "",
+            type: item.type,
+            typeVariant: item.type === "EMAIL" ? "info" : "profile",
+            source: item.integration?.type || "UNKNOWN",
+          }));
+
+          setNodes(mapped);
+          setTotal(res.data.total || 0);
+        }
+
+        return;
+      }
+
+      const res = await searchMemory(
+        profileId,
+        search,
+        {},
+        limit,
+        (page - 1) * limit
+      );
+
+      if (res?.data) {
+        const mapped = res.data.map((item) => ({
+          id: item.id,
+          sender: item.sender,
+          preview: item.content?.slice(0, 80) || "",
+          type: item.type,
+          typeVariant: item.type === "EMAIL" ? "info" : "profile",
+          source: item.integration?.type || "UNKNOWN",
+        }));
+
+        setNodes(mapped);
+      }
+    };
+
+    runSearch();
+  }, [search, profileId, page, limit]);
 
   return (
     <DashboardShell mainStyle={{ padding: 0, height: '100%', overflow: 'hidden' }}>
