@@ -1,4 +1,4 @@
-import { deleteMemoryNodeAPI, searchMemoryAPI } from "../api/memory.api";
+import { deleteMemoryNodeAPI, searchMemoryAPI, createMemoryRuleAPI, getMemoryRulesAPI } from "../api/memory.api";
 
 export const useMemory = () => {
   const deleteMemoryNode = async (communicationIds, profile_id) => {
@@ -9,5 +9,13 @@ export const useMemory = () => {
     return await searchMemoryAPI(profile_id, query, filters, limit, offset);
   }
 
-  return { deleteMemoryNode, searchMemory };
+  const createMemoryRule = async (profile_id, type, scope, value) => {
+    return await createMemoryRuleAPI(profile_id, type, scope, value);
+  }
+
+  const getMemoryRules = async (profile_id) => {
+    return await getMemoryRulesAPI(profile_id);
+  }
+
+  return { deleteMemoryNode, searchMemory, createMemoryRule, getMemoryRules };
 }

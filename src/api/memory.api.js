@@ -44,3 +44,37 @@ export const searchMemoryAPI = async (
     return { status: "error", message };
   }
 }
+
+export const createMemoryRuleAPI = async (profile_id, type, scope, value) => {
+  try {
+    const response = await api.post(`${API_BASE_URL}/profile/${profile_id}/rules`, { type, scope, value });
+    console.log("(API) Created memory rule:", response.data);
+    toast.success(response.data.message || "Memory rule created successfully!");
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.message || "Failed to create memory rule.";
+    console.error("(API) Create Memory Rule failed:", message);
+    toast.error(message);
+    return { status: "error", message };
+  }
+}
+
+export const getMemoryRulesAPI = async (profile_id) => {
+  try {
+    const response = await api.get(
+      `${API_BASE_URL}/profile/${profile_id}/rules`
+    );
+
+    console.log("(API) Retrieved memory rules:", response.data);
+
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      "Failed to retrieve memory rules.";
+
+    console.error("(API) Get Memory Rules failed:", message);
+
+    return { status: "error", message };
+  }
+};

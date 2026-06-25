@@ -24,12 +24,18 @@ export default function DataControlPage() {
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [ruleType, setRuleType] = useState("BLOCK_SENDER");
+  const [ruleScope, setRuleScope] = useState("BOTH");
+  const [ruleValues, setRuleValues] = useState([""]);
+  const [rules, setRules] = useState([]);
+
+
   const page = Number(searchParams.get('page')) || 1;
   const limit = Number(searchParams.get('limit')) || 50;
   const profileId = searchParams.get('profileId') || '';
 
   const { getCommunications } = useCommunication();
-  const { deleteMemoryNode, searchMemory } = useMemory();
+  const { deleteMemoryNode, searchMemory, createMemoryRule, getMemoryRules } = useMemory();
   const onDeleteSelected = async () => {
     const ids = Array.from(selectedIds);
 
@@ -40,6 +46,47 @@ export default function DataControlPage() {
     // remove from UI immediately
     setNodes(prev => prev.filter(n => !selectedIds.has(n.id)));
   };
+
+  const addValueField = () => {
+    setRuleValues((prev) => [...prev, ""]);
+  };
+
+  const updateValueField = (index, value) => {
+    const updated = [...ruleValues];
+    updated[index] = value;
+    setRuleValues(updated);
+  };
+
+  const removeValueField = (index) => {
+    setRuleValues((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleCreateRule = async () => {
+    if (!profileId) return;
+
+    const values = ruleValues.filter((v) => v.trim());
+
+    if (values.length === 0) return;
+
+    await createMemoryRule(profileId, ruleType, ruleScope, values);
+
+    setRuleValues([""]);
+    await loadRules();
+  };
+
+  const loadRules = async () => {
+    if (!profileId) return;
+
+    const res = await getMemoryRules(profileId);
+
+    if (res?.data) {
+      setRules(res.data);
+    }
+  };
+
+  useEffect(() => {
+    loadRules();
+  }, [profileId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,10 +166,27 @@ export default function DataControlPage() {
   }, [search, profileId, page, limit]);
 
   return (
-    <DashboardShell mainStyle={{ padding: 0, height: '100%', overflow: 'hidden' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: '100%' }}>
+    <DashboardShell
+      mainStyle={{ padding: 0, height: "100%", overflow: "hidden" }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 320px",
+          height: "100%",
+        }}
+      >
         {/* Left Area */}
-        <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--border-dim)', overflowY: 'auto', marginLeft: 210 }}>
+        <div
+          style={{
+            padding: "28px 32px",
+            display: "flex",
+            flexDirection: "column",
+            borderRight: "1px solid var(--border-dim)",
+            overflowY: "auto",
+            marginLeft: 210,
+          }}
+        >
           <PageTitle />
           <FilterBox search={search} onSearchChange={setSearch} />
           <DataTable
@@ -132,12 +196,28 @@ export default function DataControlPage() {
             onToggleAll={toggleAll}
             onDeleteSelected={onDeleteSelected}
           />
-          <PaginationBar page={page} limit={limit} total={total} profileId={profileId} />
+          <PaginationBar
+            page={page}
+            limit={limit}
+            total={total}
+            profileId={profileId}
+          />
         </div>
 
         {/* Right Area */}
-        <div style={{ padding: '28px 24px', overflowY: 'auto' }}>
-          <MemoryControlRules />
+        <div style={{ padding: "28px 24px", overflowY: "auto" }}>
+          <MemoryControlRules
+            ruleType={ruleType}
+            setRuleType={setRuleType}
+            ruleScope={ruleScope}
+            setRuleScope={setRuleScope}
+            ruleValues={ruleValues}
+            addValueField={addValueField}
+            updateValueField={updateValueField}
+            removeValueField={removeValueField}
+            onCreateRule={handleCreateRule}
+            rules={rules}
+          />
         </div>
       </div>
     </DashboardShell>

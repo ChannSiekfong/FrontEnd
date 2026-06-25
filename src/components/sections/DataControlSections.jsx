@@ -399,74 +399,293 @@ export function PaginationBar({
   );
 }
 
-export function MemoryControlRules() {
+export function MemoryControlRules({
+  ruleType,
+  setRuleType,
+  ruleScope,
+  setRuleScope,
+  ruleValues,
+  addValueField,
+  updateValueField,
+  removeValueField,
+  onCreateRule,
+  rules,
+}) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ fontSize: 12, letterSpacing: '0.1em', color: 'var(--accent-blue)', marginBottom: 20 }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div
+        style={{
+          fontSize: 12,
+          letterSpacing: "0.1em",
+          color: "var(--accent-blue)",
+          marginBottom: 20,
+        }}
+      >
         MEMORY CONTROL RULES
       </div>
 
-      <div style={{ border: '1px solid var(--border-dim)', padding: 16, marginBottom: 24 }}>
-        <div style={{ fontSize: 10, color: 'var(--text-secondary)', letterSpacing: '0.14em', marginBottom: 16 }}>
+      <div
+        style={{
+          border: "1px solid var(--border-dim)",
+          padding: 16,
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10,
+            color: "var(--text-secondary)",
+            letterSpacing: "0.14em",
+            marginBottom: 16,
+          }}
+        >
           CREATE NEW RULE
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.1em', marginBottom: 6 }}>RULE TYPE</div>
-          <div style={{ padding: '8px 12px', border: '1px solid var(--border-mid)', fontSize: 11, display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
-            <span>Block Sender</span>
+          <div
+            style={{
+              fontSize: 9,
+              color: "var(--text-dim)",
+              letterSpacing: "0.1em",
+              marginBottom: 6,
+            }}
+          >
+            RULE TYPE
+          </div>
+          <div
+            style={{
+              padding: "8px 12px",
+              border: "1px solid var(--border-mid)",
+              fontSize: 11,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              color: "var(--text-primary)",
+            }}
+          >
+            <select
+              value={ruleType}
+              onChange={(e) => setRuleType(e.target.value)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--text-primary)",
+                fontSize: 11,
+                fontFamily: "var(--font-mono)",
+                outline: "none",
+                width: "100%",
+              }}
+            >
+              <option value="BLOCK_SENDER">Block Sender</option>
+              <option value="BLOCK_CHAT">Block Chat</option>
+              <option value="BLOCK_INTEGRATION">Block Integration</option>
+              <option value="BLOCK_KEYWORD">Block Keyword</option>
+            </select>
             <ChevronDownIcon />
           </div>
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.1em', marginBottom: 6 }}>VALUE INPUT</div>
-          <input type="text" placeholder="e.g. spam@domain.com" style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--border-mid)', background: 'transparent', color: 'var(--text-primary)', fontSize: 11, fontFamily: 'var(--font-mono)', outline: 'none' }} />
+          <div
+            style={{
+              fontSize: 9,
+              color: "var(--text-dim)",
+              letterSpacing: "0.1em",
+              marginBottom: 8,
+            }}
+          >
+            VALUES
+          </div>
+
+          {ruleValues.map((value, index) => (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                gap: 8,
+                marginBottom: 8,
+              }}
+            >
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => updateValueField(index, e.target.value)}
+                placeholder="Enter value"
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  border: "1px solid var(--border-mid)",
+                  background: "transparent",
+                  color: "var(--text-primary)",
+                  fontSize: 11,
+                  fontFamily: "var(--font-mono)",
+                  outline: "none",
+                }}
+              />
+
+              {ruleValues.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeValueField(index)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--text-dim)",
+                    cursor: "pointer",
+                    fontSize: 14,
+                    lineHeight: 1,
+
+                  }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={addValueField}
+            // make UI alot better
+            style={{
+              marginTop: 8,
+              padding: "6px 12px",
+              fontSize: 10,
+              letterSpacing: "0.1em",
+              background: "var(--accent-blue)",
+              color: "#000",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            + Add Another
+          </button>
         </div>
 
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 9, color: 'var(--text-dim)', letterSpacing: '0.1em', marginBottom: 8 }}>SCOPE SELECTOR</div>
-          <div style={{ display: 'flex', gap: 12, fontSize: 10, color: 'var(--text-secondary)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="radio" name="scope" style={{ accentColor: 'var(--accent-blue)', background: 'transparent' }} /> Ingestion
+          <div
+            style={{
+              fontSize: 9,
+              color: "var(--text-dim)",
+              letterSpacing: "0.1em",
+              marginBottom: 8,
+            }}
+          >
+            SCOPE SELECTOR
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              fontSize: 10,
+              color: "var(--text-secondary)",
+            }}
+          >
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="radio"
+                name="scope"
+                value="INGESTION"
+                checked={ruleScope === "INGESTION"}
+                onChange={() => setRuleScope("INGESTION")}
+                style={{
+                  accentColor: "var(--accent-blue)",
+                  background: "transparent",
+                }}
+              />{" "}
+              Ingestion
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="radio" name="scope" style={{ accentColor: 'var(--accent-blue)', background: 'transparent' }} /> Retrieval
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="radio"
+                name="scope"
+                value="RETRIEVAL"
+                checked={ruleScope === "RETRIEVAL"}
+                onChange={() => setRuleScope("RETRIEVAL")}
+                style={{
+                  accentColor: "var(--accent-blue)",
+                  background: "transparent",
+                }}
+              />{" "}
+              Retrieval
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="radio" name="scope" defaultChecked style={{ accentColor: 'var(--accent-blue)', background: 'transparent' }} /> Both
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="radio"
+                name="scope"
+                value="BOTH"
+                checked={ruleScope === "BOTH"}
+                onChange={() => setRuleScope("BOTH")}
+                style={{
+                  accentColor: "var(--accent-blue)",
+                  background: "transparent",
+                }}
+              />{" "}
+              Both
             </label>
           </div>
         </div>
 
-        <Button style={{ width: '100%', background: '#a0c0ff', color: '#000', border: 'none', padding: '10px', fontSize: 10, letterSpacing: '0.1em', fontWeight: 600 }}>
+        <Button
+          style={{
+            width: "100%",
+            background: "#a0c0ff",
+            color: "#000",
+            border: "none",
+            padding: "10px",
+            fontSize: 10,
+            letterSpacing: "0.1em",
+            fontWeight: 600,
+          }}
+          onClick={onCreateRule}
+        >
           ADD RULE
         </Button>
       </div>
 
-      <div style={{ fontSize: 10, color: 'var(--text-secondary)', letterSpacing: '0.14em', marginBottom: 12 }}>
-        ACTIVE RULES (3)
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--text-secondary)",
+          letterSpacing: "0.14em",
+          marginBottom: 12,
+        }}
+      >
+        ACTIVE RULES ({rules.length})
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <RuleCard
-          type="BLOCK SENDER"
-          value="newsletter@marketing.io"
-          scope="INGESTION"
-          active={true}
-        />
-        <RuleCard
-          type="BLOCK KEYWORD"
-          value='"Crypto Offer"'
-          scope="BOTH"
-          active={true}
-        />
-        <RuleCard
-          type="BLOCK CHAT"
-          value="Family_Spam_Group"
-          scope="RETRIEVAL"
-          active={false}
-        />
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {rules.map((rule) => (
+          <RuleCard
+            key={rule.id}
+            type={rule.type}
+            value={rule.value.join(", ")}
+            scope={rule.scope}
+            active={rule.isActive}
+          />
+        ))}
       </div>
     </div>
   );
