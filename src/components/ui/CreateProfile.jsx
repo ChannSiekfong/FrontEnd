@@ -55,8 +55,6 @@ export const CreateProfilePopup = ({
   const [profileType, setProfileType] = useState("STANDARD");
   const [focused, setFocused] = useState(false);
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
 
   const handleCreate = async () => {
@@ -75,8 +73,6 @@ export const CreateProfilePopup = ({
       name,
       setColor,
       profileType,
-      profileType === "PRIVATE" ? password : undefined,
-      profileType === "PRIVATE" ? confirmPassword : undefined,
     );
 
     await triggerRefresh();
@@ -286,17 +282,16 @@ export const CreateProfilePopup = ({
                 </div>
               </button>
 
-              {/* Private */}
               <button
                 type="button"
-                onClick={() => setProfileType("PRIVATE")}
+                onClick={() => setProfileType("STATELESS")}
                 style={{
                   background:
-                    profileType === "PRIVATE"
+                    profileType === "STATELESS"
                       ? "rgba(232,160,74,.08)"
                       : "var(--bg-input)",
                   border:
-                    profileType === "PRIVATE"
+                    profileType === "STATELESS"
                       ? "1px solid var(--accent-amber)"
                       : "1px solid var(--border-mid)",
                   padding: 16,
@@ -312,7 +307,7 @@ export const CreateProfilePopup = ({
                     gap: 8,
                     marginBottom: 10,
                     color:
-                      profileType === "encrypted"
+                      profileType === "STATELESS"
                         ? "var(--accent-amber)"
                         : "var(--text-secondary)",
                   }}
@@ -325,7 +320,7 @@ export const CreateProfilePopup = ({
                       letterSpacing: ".08em",
                     }}
                   >
-                    PRIVATE / ENCRYPTED
+                    STATELESS
                   </span>
                 </div>
 
@@ -341,80 +336,6 @@ export const CreateProfilePopup = ({
               </button>
             </div>
           </div>
-
-          { /* If encrypted, show password fields */
-            profileType === "PRIVATE" && (
-              <div style={{ marginBottom: 24 }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: 8,
-                    fontSize: 10,
-                    letterSpacing: "0.16em",
-                    color: "var(--text-dim)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                >
-                  ENCRYPTION PASSWORD
-                </label>
-
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter password"
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    boxSizing: "border-box",
-                    background: "var(--bg-input)",
-                    border: `1px solid ${
-                      password
-                        ? selectedColor
-                        : "var(--border-mid)"
-                    }`,
-                    color: "var(--text-primary)",
-                    outline: "none",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 13,
-                    transition: "all .2s ease",
-                    boxShadow:
-                      password
-                        ? `0 0 0 3px ${selectedColor}20`
-                        : "none",
-                    marginBottom: 12,
-                  }}
-                />
-
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm password"
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    boxSizing: "border-box",
-                    background: "var(--bg-input)",
-                    border: `1px solid ${
-                      confirmPassword
-                        ? selectedColor
-                        : "var(--border-mid)"
-                    }`,
-                    color: "var(--text-primary)",
-                    outline: "none",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: 13,
-                    transition: "all .2s ease",
-                    boxShadow:
-                      confirmPassword
-                        ? `0 0 0 3px ${selectedColor}20`
-                        : "none",
-                  }}
-                />
-            </div>
-          )}
-
 
           {/* Color Selection */}
           <div style={{ marginBottom: 24 }}>
@@ -515,13 +436,13 @@ export const CreateProfilePopup = ({
                   fontSize: 10,
                   letterSpacing: ".08em",
                   color:
-                    profileType === "encrypted"
+                    profileType === "STATELESS"
                       ? "var(--accent-amber)"
                       : "var(--accent-blue)",
                 }}
               >
-                {profileType === "encrypted"
-                  ? "PRIVATE"
+                {profileType === "STATELESS"
+                  ? "STATELESS"
                   : "STANDARD"}
               </span>
             </div>

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
 import { useIntegration } from '../hook/integration.hook';
 import { useCommunication } from '../hook/communication.hook';
+import { useGetProfiles } from '../hook/profile.hook';
 import { api } from '../api/global.api';
 import Navbar from '../components/layout/Navbar';
 import Sidebar from '../components/layout/Sidebar';
@@ -26,6 +27,7 @@ function IntegrationCard({
   onDisconnect,
   onSync,
   onReconnect,
+  isStandardProfile, // Received from parent state matching
 }) {
   const isLinked = useMemo(() => {
     if (!integration) return false;
@@ -114,10 +116,19 @@ function IntegrationCard({
           <div style={styles.actions}>
             {status === "ACTIVE" && (
               <>
-                <button onClick={() => onSync?.(integration?.id)} style={styles.syncBtn}>
-                  RUN_SYNC
-                </button>
-                <button onClick={onDisconnect} style={styles.dangerBtn}>
+                {isStandardProfile && (
+                  <button onClick={() => onSync?.(integration?.id)} style={styles.syncBtn}>
+                    RUN_SYNC
+                  </button>
+                )}
+                <button
+                  onClick={onDisconnect}
+                  style={{
+                    ...styles.dangerBtn,
+                    flex: isStandardProfile ? "initial" : 1,
+                    width: isStandardProfile ? 110 : "100%"
+                  }}
+                >
                   DISCONNECT
                 </button>
               </>
@@ -170,12 +181,15 @@ export default function IntegrationsPage() {
     integrate,
   } = useIntegration();
 
+  const { getProfiles } = useGetProfiles();
   const { sync } = useCommunication();
+
   const [integrations, setIntegrations] = useState([]);
+  const [currentProfileType, setCurrentProfileType] = useState("STANDARD");
 
   // Modal Flow Setup State Machine
   const [showTelegramModal, setShowTelegramModal] = useState(false);
-  const [telegramStep, setTelegramStep] = useState(1); // Step 1: Phone, Step 2: Code Code
+  const [telegramStep, setTelegramStep] = useState(1);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [createdIntegrationId, setCreatedIntegrationId] = useState("");
@@ -186,6 +200,25 @@ export default function IntegrationsPage() {
     const res = await getIntegrationStatus(profileId);
     setIntegrations(res?.data || []);
   };
+
+  // Detect current runtime environment parameters matching selected profile configuration arrays
+  useEffect(() => {
+    const fetchProfileMetadata = async () => {
+      try {
+        const profileList = await getProfiles();
+        const activeProfile = profileList?.find(p => String(p.id) === String(profileId));
+        if (activeProfile) {
+          setCurrentProfileType(activeProfile.type);
+        }
+      } catch (err) {
+        console.error("Failed to parse runtime structural layer parameters:", err);
+      }
+    };
+
+    if (profileId) {
+      fetchProfileMetadata();
+    }
+  }, [profileId]);
 
   useEffect(() => {
     if (!profileId) return;
@@ -216,7 +249,6 @@ export default function IntegrationsPage() {
     }
   };
 
-  // Intercept normal connect flow for specific multi-phase Telegram rules
   const handleIntegrate = async (type) => {
     if (type === "TELEGRAM") {
       setTelegramStep(1);
@@ -230,7 +262,6 @@ export default function IntegrationsPage() {
     }
   };
 
-  // Step 1: Submit Phone Number payload
   const handleTelegramConnectSubmit = async (e) => {
     e.preventDefault();
     if (!phoneNumber) return;
@@ -238,13 +269,11 @@ export default function IntegrationsPage() {
     setModalError("");
 
     try {
-      // Axios or fetch utility mapping to integrationController.telegram_connect
       const response = await api.post(`/profile/${profileId}/integration/telegram/connect`, {
         phone: phoneNumber
       });
 
       if (response.data.status === "success") {
-        // Capture integration ID for next phase confirmation step
         setCreatedIntegrationId(response.data?.id || response.data.id);
         setTelegramStep(2);
       } else {
@@ -257,7 +286,6 @@ export default function IntegrationsPage() {
     }
   };
 
-  // Step 2: Confirm Telegram OTP Code Handshake
   const handleTelegramVerifySubmit = async (e) => {
     e.preventDefault();
     if (!verificationCode) return;
@@ -265,7 +293,6 @@ export default function IntegrationsPage() {
     setModalError("");
 
     try {
-      // Fetch utility mapping to integrationController.telegram_verify
       const response = await api.post(`/profile/${profileId}/integration/telegram/verify`, {
         code: verificationCode,
       });
@@ -314,6 +341,7 @@ export default function IntegrationsPage() {
                 key={item.type}
                 {...item}
                 integration={getIntegration(item.type)}
+                isStandardProfile={currentProfileType === "STANDARD"}
                 onIntegrate={handleIntegrate}
                 onDisconnect={() => handleDisconnect(getIntegration(item.type)?.id)}
                 onReconnect={() => handleReconnect(item.type)}
@@ -415,100 +443,20 @@ const styles = {
   actions: { display: "flex", gap: 12 },
   connectBtn: { flex: 1, height: 38, background: "#161922", border: "1px solid #2d3247", color: "#8ba2cb", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.15s ease" },
   syncBtn: { flex: 1, height: 38, background: "rgba(34, 197, 94, 0.04)", border: "1px solid #22c55e", color: "#4ade80", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "pointer", transition: "all 0.15s ease" },
-  dangerBtn: { width: 110, height: 38, background: "transparent", border: "1px solid #383d52", color: "#888ea0", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "pointer", transition: "all 0.15s ease" },
+  dangerBtn: { height: 38, background: "transparent", border: "1px solid #383d52", color: "#888ea0", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "pointer", transition: "all 0.15s ease" },
   warnBtn: { flex: 1, height: 38, background: "rgba(239,68,68,0.04)", border: "1px solid #ef4444", color: "#f87171", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.15s ease" },
   disabledBtn: { flex: 1, height: 38, background: "#0f111a", border: "1px solid #1f2330", color: "#4e556e", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "not-allowed" },
 
   /* CYBERPUNK MODAL SYSTEM SPECIFICATION */
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "rgba(6, 7, 10, 0.85)",
-    backdropFilter: "blur(4px)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-  },
-  modalContent: {
-    background: "#0f111a",
-    border: "1px solid #2d3247",
-    padding: 24,
-    width: "100%",
-    maxWidth: 420,
-    boxSizing: "border-box",
-  },
-  modalHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-    borderBottom: "1px solid #1c202e",
-    paddingBottom: 12,
-  },
-  modalTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: "0.15em",
-    color: "#ffffff",
-  },
-  closeBtn: {
-    background: "transparent",
-    border: "none",
-    color: "#4e556e",
-    cursor: "pointer",
-    fontSize: 14,
-  },
-  modalForm: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  modalLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#8ba2cb",
-    letterSpacing: "0.05em",
-  },
-  modalInput: {
-    background: "#08090d",
-    border: "1px solid #1f2330",
-    height: 40,
-    padding: "0 12px",
-    color: "#ffffff",
-    fontFamily: "inherit",
-    fontSize: 13,
-    outline: "none",
-    transition: "border-color 0.2s ease",
-  },
-  modalHelpText: {
-    fontSize: 10,
-    color: "#4e556e",
-    lineHeight: "1.4",
-  },
-  modalSubmitBtn: {
-    height: 40,
-    background: "rgba(96, 165, 250, 0.05)",
-    border: "1px solid #3b82f6",
-    color: "#60a5fa",
-    fontFamily: "inherit",
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: "0.1em",
-    cursor: "pointer",
-    marginTop: 6,
-    transition: "all 0.15s ease",
-  },
-  modalErrorBox: {
-    padding: "10px 12px",
-    background: "rgba(239, 68, 68, 0.03)",
-    border: "1px solid rgba(239, 68, 68, 0.2)",
-    fontSize: 11,
-    color: "#f87171",
-    marginBottom: 16,
-    lineHeight: "1.4",
-  }
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(6, 7, 10, 0.85)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 },
+  modalContent: { background: "#0f111a", border: "1px solid #2d3247", padding: 24, width: "100%", maxWidth: 420, boxSizing: "border-box" },
+  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, borderBottom: "1px solid #1c202e", paddingBottom: 12 },
+  modalTitle: { fontSize: 12, fontWeight: "700", letterSpacing: "0.15em", color: "#ffffff" },
+  closeBtn: { background: "transparent", border: "none", color: "#4e556e", cursor: "pointer", fontSize: 14 },
+  modalForm: { display: "flex", flexDirection: "column", gap: 14 },
+  modalLabel: { fontSize: 10, fontWeight: "700", color: "#8ba2cb", letterSpacing: "0.05em" },
+  modalInput: { background: "#08090d", border: "1px solid #1f2330", height: 40, padding: "0 12px", color: "#ffffff", fontFamily: "inherit", fontSize: 13, outline: "none", transition: "border-color 0.2s ease" },
+  modalHelpText: { fontSize: 10, color: "#4e556e", lineHeight: "1.4" },
+  modalSubmitBtn: { height: 40, background: "rgba(96, 165, 250, 0.05)", border: "1px solid #3b82f6", color: "#60a5fa", fontFamily: "inherit", fontSize: 11, fontWeight: "700", letterSpacing: "0.1em", cursor: "pointer", marginTop: 6, transition: "all 0.15s ease" },
+  modalErrorBox: { padding: "10px 12px", background: "rgba(239, 68, 68, 0.03)", border: "1px solid rgba(239, 68, 68, 0.2)", fontSize: 11, color: "#f87171", marginBottom: 16, lineHeight: "1.4" }
 };

@@ -9,9 +9,8 @@ import CornerBrackets from "../components/ui/CornerBrackets";
 import { useDeleteProfile } from "../hook/profile.hook";
 
 /* ---------------- DYNAMIC CSS INJECTION ---------------- */
-// Goldilocks Zone: Balanced iOS shake — noticeable but controlled
 if (typeof document !== "undefined") {
-  const styleId = "profile-shake-keyframes";
+  const styleId = "profile-system-styles";
   let styleElement = document.getElementById(styleId);
 
   if (styleElement) {
@@ -31,7 +30,6 @@ if (typeof document !== "undefined") {
       100% { transform: translate(0.3px, -0.2px) rotate(-0.1deg); }
     }
     .shake-active {
-      /* 0.5s is the sweet spot between a frantic vibrate (0.35s) and a lazy drift (0.75s) */
       animation: profile-shake 0.5s infinite ease-in-out;
     }
   `;
@@ -41,14 +39,14 @@ if (typeof document !== "undefined") {
 /* ---------------- ICONS ---------------- */
 
 const BriefcaseIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
     <rect x="2" y="7" width="20" height="14" rx="2" />
     <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
   </svg>
 );
 
 const PersonIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
@@ -61,8 +59,8 @@ const PlusIcon = () => (
   </svg>
 );
 
-const CheckIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4af0c4" strokeWidth="2">
+const CheckIcon = ({ color = "#4af0c4" }) => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
@@ -74,10 +72,7 @@ function ConfirmDeleteModal({ profileName, onConfirm, onCancel }) {
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         background: "rgba(10, 11, 16, 0.85)",
         backdropFilter: "blur(4px)",
         display: "flex",
@@ -166,16 +161,20 @@ function ProfileCard({ profile, onSelect, isEditMode, onDeleteClick }) {
   const [hovered, setHovered] = useState(false);
 
   function getColor(color) {
-    if (color === "BLUE") return "#4a9eff";
-    if (color === "CYAN") return "#00d4ff";
-    if (color === "GREEN") return "#00ff9d";
-    if (color === "ORANGE") return "#e8a04a";
-    if (color === "RED") return "#ff5f7a";
-    if (color === "PURPLE") return "#b07cff";
-    return "#4a9eff";
+    if (color === "BLUE") return { hex: "#4a9eff", rgb: "74, 158, 255" };
+    if (color === "CYAN") return { hex: "#00d4ff", rgb: "0, 212, 255" };
+    if (color === "GREEN") return { hex: "#00ff9d", rgb: "0, 255, 157" };
+    if (color === "ORANGE") return { hex: "#e8a04a", rgb: "232, 160, 74" };
+    if (color === "RED") return { hex: "#ff5f7a", rgb: "255, 95, 122" };
+    if (color === "PURPLE") return { hex: "#b07cff", rgb: "176, 124, 255" };
+    return { hex: "#4a9eff", rgb: "74, 158, 255" };
   }
 
-  const color = getColor(profile.color);
+  const themeColors = getColor(profile.color);
+  const colorHex = themeColors.hex;
+  const colorRgb = themeColors.rgb;
+
+  const isStateless = profile.type === "STATELESS";
 
   return (
     <div
@@ -185,24 +184,27 @@ function ProfileCard({ profile, onSelect, isEditMode, onDeleteClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         position: "relative",
-        background: hovered ? "var(--bg-card-hover)" : "var(--bg-card)",
-        border: `1px solid ${isEditMode ? "#ff5f7a" : "var(--border-dim)"}`,
-        padding: "24px",
+        background: "var(--bg-card)",
+        border: `1px solid ${isEditMode ? "#ff5f7a" : hovered ? colorHex : "var(--border-dim)"}`,
         cursor: isEditMode ? "default" : "pointer",
-        transition: "background 0.2s, border 0.2s",
+        transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        boxShadow: hovered && !isEditMode ? `0 12px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(${colorRgb}, 0.05)` : "none",
       }}
     >
       {/* EXPLICIT REMOVE ICON FOR EDIT MODE */}
       {isEditMode && (
         <button
           onClick={(e) => {
-            e.stopPropagation(); // Avoid triggering selections or navigations
+            e.stopPropagation();
             onDeleteClick();
           }}
           style={{
             position: "absolute",
-            top: "-10px",
-            left: "-10px",
+            top: "8px",
+            left: "8px",
             width: "24px",
             height: "24px",
             borderRadius: "50%",
@@ -214,7 +216,7 @@ function ProfileCard({ profile, onSelect, isEditMode, onDeleteClick }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 10,
+            zIndex: 30,
             fontSize: 11,
             boxShadow: "0 0 10px rgba(255, 95, 122, 0.4)",
           }}
@@ -223,84 +225,96 @@ function ProfileCard({ profile, onSelect, isEditMode, onDeleteClick }) {
         </button>
       )}
 
-      {/* Dynamic system hooks depending on mode state */}
-      <CornerBrackets color={isEditMode ? "#ff5f7a" : hovered ? color : "#2e3a4f"} />
+      {/* Dynamic brackets matching theme colors on hover */}
+      <CornerBrackets color={isEditMode ? "#ff5f7a" : hovered ? colorHex : "#2e3a4f"} />
 
-      {/* type badge */}
+      {/* ================= SHARED COMPACT HEADER BLOCKS ================= */}
       <div
         style={{
-          position: "absolute",
-          top: 14,
-          right: 14,
-          fontSize: 8,
-          letterSpacing: "0.16em",
-          color: "var(--text-dim)",
-          border: "1px solid var(--border-mid)",
-          padding: "2px 6px",
-          background: "var(--bg-base)",
-        }}
-      >
-        {profile.type}
-      </div>
-
-      {/* icon box */}
-      <div
-        style={{
-          width: 52,
-          height: 52,
-          border: `1px solid ${isEditMode ? "#ff5f7a" : color}`,
+          background: isStateless ? colorHex : "transparent",
+          borderBottom: isStateless ? "none" : "1px solid var(--border-dim)",
+          padding: "20px 24px",
           display: "flex",
+          justifyContent: "space-between",
           alignItems: "center",
-          justifyContent: "center",
-          color: isEditMode ? "#ff5f7a" : color,
-          marginBottom: 16,
-          background: "var(--bg-input)",
+          position: "relative",
         }}
       >
-        {profile.type === "STANDARD" ? <BriefcaseIcon /> : <PersonIcon />}
+        <div style={{ color: isStateless ? "#0a0b10" : "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              background: isStateless ? "rgba(10, 11, 16, 0.15)" : `rgba(${colorRgb}, 0.1)`,
+              padding: "8px",
+              display: "flex",
+              color: isStateless ? "#0a0b10" : colorHex,
+              border: isStateless ? "none" : `1px solid rgba(${colorRgb}, 0.2)`
+            }}
+          >
+            {isStateless ? <PersonIcon /> : <BriefcaseIcon />}
+          </div>
+          <div>
+            <span
+              style={{
+                fontSize: 8,
+                letterSpacing: "0.15em",
+                display: "block",
+                opacity: isStateless ? 0.8 : 0.6,
+                fontWeight: "bold"
+              }}
+            >
+              INSTANCE_NODE
+            </span>
+            <h3 style={{ fontFamily: "var(--font-display)", fontSize: 20, margin: 0, color: isStateless ? "#0a0b10" : "var(--text-primary)" }}>
+              {profile.name}
+            </h3>
+          </div>
+        </div>
+        <div
+          style={{
+            fontSize: 8,
+            letterSpacing: "0.1em",
+            color: isStateless ? colorHex : "var(--text-primary)",
+            background: isStateless ? "#0a0b10" : `rgba(${colorRgb}, 0.15)`,
+            border: isStateless ? "none" : `1px solid ${colorHex}`,
+            padding: "4px 8px",
+            fontWeight: "bold"
+          }}
+        >
+          {profile.type}
+        </div>
       </div>
 
-      {/* name */}
-      <h3
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 22,
-          marginBottom: 4,
-          color: "var(--text-primary)",
-        }}
-      >
-        {profile.name}
-      </h3>
+      {/* ================= UNIFIED BODY LAYER ================= */}
+      <div style={{ padding: "24px", flex: 1, display: "flex", flexDirection: "column" }}>
 
-      {/* sync text */}
-      <p style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 16 }}>
-        Last Sync: {profile.lastSync}
-      </p>
+        {/* Sync Metadata Array */}
+        <p style={{ fontSize: 10, color: "var(--text-dim)", marginBottom: 20, marginTop: 0 }}>
+          {isStateless ? "▲ MEMORY: VOLATILE (EPHEMERAL)" : `▪ LAST_SYNC: ${profile.lastSync}`}
+        </p>
 
-      {/* status layer */}
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-        <span style={{ fontSize: 9, color: isEditMode ? "#ff5f7a" : color }}>
-          {isEditMode ? "PENDING_MUTATION" : "SYNC_COMPLETE"}
-        </span>
-        <CheckIcon />
+        {/* Status Line Layout */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, alignItems: "center", marginTop: "auto" }}>
+        </div>
+
+        {/* Dynamic Action Trigger Blocks */}
+        <button
+          disabled={isEditMode}
+          style={{
+            width: "100%",
+            padding: "11px",
+            border: `1px solid ${isEditMode ? "var(--border-dim)" : colorHex}`,
+            background: isStateless ? `rgba(${colorRgb}, 0.08)` : hovered ? colorHex : "var(--bg-input)",
+            color: !isStateless && hovered ? "#0a0b10" : "var(--text-primary)",
+            fontSize: 10,
+            letterSpacing: "0.16em",
+            cursor: isEditMode ? "not-allowed" : "pointer",
+            fontWeight: "bold",
+            transition: "all 0.15s ease",
+          }}
+        >
+          {isEditMode ? "TERMINATE_ACCESS" : isStateless ? "ENTER_PROFILE" : "ENTER_PROFILE"}
+        </button>
       </div>
-
-      {/* action visualizer */}
-      <button
-        disabled={isEditMode}
-        style={{
-          width: "100%",
-          padding: "10px",
-          border: `1px solid ${isEditMode ? "var(--border-dim)" : color}`,
-          background: "var(--bg-input)",
-          fontSize: 10,
-          letterSpacing: "0.16em",
-          cursor: isEditMode ? "not-allowed" : "pointer",
-          color: isEditMode ? "var(--text-dim)" : "var(--text-primary)",
-        }}
-      >
-        {isEditMode ? "TERMINATE_ACCESS" : "INITIALIZE_PROFILE"}
-      </button>
     </div>
   );
 }
@@ -317,7 +331,7 @@ function CreateProfileCard({ onClick }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         border: `1px dashed ${hovered ? "var(--accent-blue)" : "var(--border-mid)"}`,
-        minHeight: 260,
+        minHeight: 276,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -373,13 +387,9 @@ export default function ProfileSelectionPage() {
     fetchProfiles();
   }, [refreshFlag]);
 
-
-  // Handle actual destruction sequences here
   const handleDeleteConfirm = async () => {
     if (!profileToDelete) return;
     try {
-      // Connect to your respective database delete hook here if necessary
-      // Example: await deleteProfileById(profileToDelete.id);
       await deleteProfile(profileToDelete.id);
       setProfileToDelete(null);
       triggerRefresh();
@@ -514,7 +524,8 @@ export default function ProfileSelectionPage() {
                   onDeleteClick={() => setProfileToDelete(p)}
                   onSelect={() => {
                     localStorage.setItem("currentProfileId", p.id);
-                    navigate(`/dashboard/omni-search?profileId=${p.id}`);
+                    localStorage.setItem("currentProfileType", p.type);
+                    navigate(`/dashboard/omni-search?profileId=${p.id}&profileType=${p.type}`);
                   }}
                 />
               ))}
@@ -551,7 +562,7 @@ export default function ProfileSelectionPage() {
             },
             { icon: "▣", label: "SERVER: EDGE_NODE_09" },
           ]}
-          right="© 2024 NEURAL_SEARCH_PROTOCOL  ▪ ▪ ▪"
+          right="© 2024 NEURAL_SEARCH_PROTOCOL ▪ ▪ ▪"
         />
       </div>
     </div>

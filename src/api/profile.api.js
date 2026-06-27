@@ -9,8 +9,6 @@ export const createProfileAPI = async (name, color, type, password, confirm_pass
       name: name,
       color: color,
       type: type,
-      password: password || undefined,
-      confirm_password: confirm_password || undefined,
     });
     toast.success(response.data.message || "Profile created successfully!");
     return response.data;

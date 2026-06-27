@@ -84,22 +84,6 @@ export default function LoginPage() {
         <p style={{ fontSize: 12, color: 'var(--text-dim)', letterSpacing: '0.04em', marginBottom: 28 }}>
           Create your encrypted context environment.
         </p>
-
-        {/* Google */}
-        {/* <button style={{
-          width: '100%', padding: '13px',
-          background: 'var(--bg-input)', border: '1px solid var(--border-mid)',
-          color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: 13,
-          letterSpacing: '0.08em', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-          transition: 'all 0.2s', marginBottom: 24,
-        }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-blue)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-mid)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
-        >
-          <GoogleIcon /> Log In with Google
-        </button> */}
-
         {/* Divider */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 12,

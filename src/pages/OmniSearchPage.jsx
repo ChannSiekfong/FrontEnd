@@ -502,6 +502,7 @@ export default function OmniSearchPage() {
 
   const chatId = new URLSearchParams(location.search).get("chatId");
   const currentProfileId = new URLSearchParams(location.search).get("profileId");
+  const currentProfileType = new URLSearchParams(location.search).get("profileType") || "STANDARD";
 
   const [dots, setDots] = useState(".");
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
@@ -590,6 +591,7 @@ export default function OmniSearchPage() {
       },
       chatId,
       currentProfileId,
+      currentProfileType
     );
   };
 
@@ -655,22 +657,22 @@ export default function OmniSearchPage() {
   };
 
   const handleCreateNewChat = async () => {
-      const activeProfileId = currentProfileId || localStorage.getItem('currentProfileId');
+    const activeProfileId = currentProfileId || localStorage.getItem('currentProfileId');
 
-      try {
-        // 1. Run the backend creation logic
-        await create_chat(activeProfileId);
+    try {
+      // 1. Run the backend creation logic
+      await create_chat(activeProfileId);
 
-        // 2. Give the database a tiny split second (200ms) to finish writing the row,
-        // then force the sidebar event to fire regardless of the 'undefined' return.
-        setTimeout(() => {
-          window.dispatchEvent(new Event('sync_sidebar_chats'));
-        }, 100);
+      // 2. Give the database a tiny split second (200ms) to finish writing the row,
+      // then force the sidebar event to fire regardless of the 'undefined' return.
+      setTimeout(() => {
+        window.dispatchEvent(new Event('sync_sidebar_chats'));
+      }, 100);
 
-      } catch (err) {
-        console.error("Error during session stream generation:", err);
-      }
-    };
+    } catch (err) {
+      console.error("Error during session stream generation:", err);
+    }
+  };
 
   return (
     <div
@@ -803,8 +805,8 @@ export default function OmniSearchPage() {
               <div
                 style={{
                   flex: 1,
-                  overflowY: isEmptyChat ? "hidden" : "auto",
-                  padding: isEmptyChat ? 0 : "24px 24px 0",
+                  overflowY: "auto",
+                  padding: "24px 24px 0",
                 }}
               >
                 {isEmptyChat ? (
@@ -908,7 +910,7 @@ export default function OmniSearchPage() {
                             msg={msg}
                             dots={dots}
                             onClick={() => {
-                              if (msg.rawSources?.length) {
+                              if (currentProfileType === "STANDARD" && msg.rawSources?.length) {
                                 setSelectedMessage(msg);
                               }
                             }}
