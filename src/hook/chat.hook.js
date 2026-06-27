@@ -11,10 +11,10 @@ export const useChat = () => {
     return await fetchConversationAPI(chatId);
   }
 
-  const create_chat = async (profileId) => {
+  const create_chat = async (profileId, profileType) => {
     const data = await createChatAPI(profileId);
     if (data.status === "success") {
-      navigate(`/dashboard/omni-search?profileId=${profileId}&chatId=${data.data}`);
+      navigate(`/dashboard/omni-search?profileId=${profileId}&chatId=${data.data}&profileType=${profileType}`);
     }
   }
 

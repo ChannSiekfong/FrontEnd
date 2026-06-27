@@ -9,9 +9,11 @@ export const useSearch = () => {
     profileId?: string,
     type?: string
   ) => {
-    if(type?.toLowerCase() === "standard") {
+
+    console.log(type, "profile type");
+    if(type === "STANDARD") {
       await searchAPI(query, aiId, onEvent, chatId, profileId);
-    } else if(type?.toLowerCase() === "stateless") {
+    } else if(type === "STATELESS") {
       await statelesSearchAPI(query, aiId, onEvent, chatId, profileId);
     } else {
       console.error("Invalid search type:", type);
