@@ -78,3 +78,20 @@ export const getMemoryRulesAPI = async (profile_id) => {
     return { status: "error", message };
   }
 };
+
+export const deleteMemoryRuleAPI = async (profile_id, rule_id) => {
+  try {
+    const response = await api.delete(`${API_BASE_URL}/profile/${profile_id}/rules/${rule_id}`);
+    console.log("(API) Deleted memory rule:", response.data);
+    toast.success(response.data.message || "Memory rule deleted successfully!");
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      "Failed to delete memory rule.";
+
+    console.error("(API) Delete Memory Rule failed:", message);
+
+    return { status: "error", message };
+  }
+}
