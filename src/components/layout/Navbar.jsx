@@ -44,13 +44,26 @@ export default function Navbar({ showSidebar = false }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const currentProfileId = localStorage.getItem('currentProfileId');
+  const currentProfileType = localStorage.getItem('currentProfileType') || 'STANDARD';
 
-  const NAV_TABS = [
-    { label: 'OMNI-SEARCH', path: `/dashboard/omni-search?profileId=${currentProfileId}`, pattern: '/omni-search', icon: <SearchIcon /> },
-    { label: 'NEURAL-LINKS', path: `/dashboard/neural-links?profileId=${currentProfileId}`, pattern: '/neural-links', icon: <LinkIcon2 /> },
-    { label: 'SYSTEM-CONFIG', path: `/dashboard/system-config?profileId=${currentProfileId}`, pattern: '/system-config', icon: <ConfigIcon /> },
+  // const NAV_TABS = [
+  //   { label: 'OMNI-SEARCH', path: `/dashboard/omni-search?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/omni-search', icon: <SearchIcon /> },
+  //   { label: 'NEURAL-LINKS', path: `/dashboard/neural-links?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/neural-links', icon: <LinkIcon2 /> },
+  //   { label: 'SYSTEM-CONFIG', path: `/dashboard/system-config?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/system-config', icon: <ConfigIcon /> },
+  //   { label: 'DATA-CONTROL', path: `/dashboard/data-control?profileId=${currentProfileId}&page=1&limit=75`, pattern: '/data-control', icon: <ArchiveIcon /> },
+  // ];
+
+  const NAV_TABS = currentProfileId === 'STANDARD' ? [
+    { label: 'OMNI-SEARCH', path: `/dashboard/omni-search?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/omni-search', icon: <SearchIcon /> },
+    { label: 'NEURAL-LINKS', path: `/dashboard/neural-links?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/neural-links', icon: <LinkIcon2 /> },
+    { label: 'SYSTEM-CONFIG', path: `/dashboard/system-config?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/system-config', icon: <ConfigIcon /> },
     { label: 'DATA-CONTROL', path: `/dashboard/data-control?profileId=${currentProfileId}&page=1&limit=75`, pattern: '/data-control', icon: <ArchiveIcon /> },
-  ];
+  ] : [
+    { label: 'OMNI-SEARCH', path: `/dashboard/omni-search?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/omni-search', icon: <SearchIcon /> },
+    { label: 'NEURAL-LINKS', path: `/dashboard/neural-links?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/neural-links', icon: <LinkIcon2 /> },
+    { label: 'SYSTEM-CONFIG', path: `/dashboard/system-config?profileId=${currentProfileId}&profileType=${currentProfileType}`, pattern: '/system-config', icon: <ConfigIcon /> },
+  ]
+
 
   const activeTab = NAV_TABS.find(tab => pathname.includes(tab.pattern))?.label || null;
 

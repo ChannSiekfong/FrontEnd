@@ -89,10 +89,12 @@ export default function Sidebar() {
   };
 
   const currentProfileId = localStorage.getItem('currentProfileId');
+  const currentProfileType = localStorage.getItem('currentProfileType') || 'STANDARD';
   const { fetch_chats, create_chat, delete_chat } = useChat();
 
   const handleCreateChat = async (profileId) => {
-    const newChat = await create_chat(profileId);
+    const newChat = await create_chat(profileId, currentProfileType);
+
     const response = await fetch_chats(profileId);
     if (response && response.data) {
       setChats(response.data);
@@ -113,7 +115,7 @@ export default function Sidebar() {
 
     // If the currently active chat was deleted, clear url parameters or redirect
     if (activeChatId === chatToDelete.id) {
-      navigate(`/dashboard/omni-search?profileId=${currentProfileId}`);
+      navigate(`/dashboard/omni-search?profileId=${currentProfileId}&profileType=${currentProfileType}`);
     }
 
     const response = await fetch_chats(currentProfileId);
@@ -275,7 +277,7 @@ export default function Sidebar() {
                         onMouseEnter={() => setHoveredChatId(chat.id)}
                         onMouseLeave={() => setHoveredChatId(null)}
                         onClick={() =>
-                          navigate(`/dashboard/omni-search?profileId=${currentProfileId}&chatId=${chat.id}`)
+                          navigate(`/dashboard/omni-search?profileId=${currentProfileId}&chatId=${chat.id}&profileType=${currentProfileType}`)
                         }
                         style={{
                           position: "relative",

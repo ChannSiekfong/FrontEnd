@@ -1,8 +1,8 @@
 import { createProfileAPI, deleteProfileAPI, getProfilesAPI } from "../api/profile.api";
 
 export const useCreateProfile = () => {
-  const createProfile = async (name, color, type, password, confirm_password) => {
-    const data = await createProfileAPI(name, color, type, password, confirm_password);
+  const createProfile = async (name, color, type) => {
+    const data = await createProfileAPI(name, color, type);
     return data;
   }
   return { createProfile };
