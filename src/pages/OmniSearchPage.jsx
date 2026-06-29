@@ -658,10 +658,12 @@ export default function OmniSearchPage() {
 
   const handleCreateNewChat = async () => {
     const activeProfileId = currentProfileId || localStorage.getItem('currentProfileId');
+    const activeProfileType = currentProfileType || localStorage.getItem('currentProfileType') || "STANDARD";
+
 
     try {
       // 1. Run the backend creation logic
-      await create_chat(activeProfileId);
+      await create_chat(activeProfileId, activeProfileType);
 
       // 2. Give the database a tiny split second (200ms) to finish writing the row,
       // then force the sidebar event to fire regardless of the 'undefined' return.
