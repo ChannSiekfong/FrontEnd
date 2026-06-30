@@ -1,10 +1,12 @@
 import { toast } from "react-toastify";
+import { API_BASE_URL } from "./global.api";
 
 export const BASE_URL = "search";
 
+
 export const statelesSearchAPI = async (query: string, aiId: string, onEvent: (data: any) => void, chatId?: string, profileId?: string) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/${BASE_URL}/stream/stateless?chatId=${chatId}&profileId=${profileId}`, {
+    const response = await fetch(`${API_BASE_URL}/${BASE_URL}/stream/stateless?chatId=${chatId}&profileId=${profileId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +52,7 @@ export const statelesSearchAPI = async (query: string, aiId: string, onEvent: (d
 export const searchAPI = async (query: string, aiId: string, onEvent: (data: any) => void, chatId?: string, profileId?: string) => {
   try {
     const response = await fetch(
-      `http://localhost:8000/api/${BASE_URL}/stream?chatId=${chatId}&profileId=${profileId}`,
+      `${API_BASE_URL}/${BASE_URL}/stream?chatId=${chatId}&profileId=${profileId}`,
       {
         method: "POST",
         headers: {
@@ -83,6 +85,7 @@ export const searchAPI = async (query: string, aiId: string, onEvent: (data: any
         if (!chunk.startsWith("data: ")) continue;
         try {
           const json = JSON.parse(chunk.replace("data: ", ""));
+          
           onEvent(json);
         } catch (error) {
           console.error("Failed to parse chunk:", chunk, error);
